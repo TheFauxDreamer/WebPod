@@ -1,0 +1,171 @@
+name: Build libgpod
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            python-version: '3.10'
+            artifact-name: libgpod-linux-x86_64-py3.10
+          - os: ubuntu-24.04
+            python-version: '3.12'
+            artifact-name: libgpod-linux-x86_64-py3.12
+          - os: macos-13
+            python-version: '3.12'
+            artifact-name: libgpod-macos-x86_64-py3.12
+          - os: macos-14
+            python-version: '3.12'
+            artifact-name: libgpod-macos-arm64-py3.12
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Python packages
+        run: pip install mutagen
+
+      - name: Install system dependencies (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libglib2.0-dev \
+            libsqlite3-dev \
+            libplist-dev \
+            zlib1g-dev \
+            libgdk-pixbuf-2.0-dev \
+            libxml2-dev \
+            swig \
+            intltool \
+            gtk-doc-tools \
+            gnome-common \
+            python3-dev \
+            gettext \
+            autoconf \
+            automake \
+            libtool \
+            pkg-config
+
+      - name: Install system dependencies (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install \
+            glib \
+            sqlite \
+            libplist \
+            gdk-pixbuf \
+            libxml2 \
+            swig \
+            intltool \
+            gtk-doc \
+            gnome-common \
+            automake \
+            autoconf \
+            libtool \
+            gettext \
+            pkg-config
+          # Ensure gettext tools are on PATH (brew keg-only)
+          echo "$(brew --prefix gettext)/bin" >> $GITHUB_PATH
+
+      - name: Generate build system
+        run: autoreconf -fi
+
+      - name: Configure
+        run: |
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            # Help pkg-config find brew packages
+            export PKG_CONFIG_PATH="$(brew --prefix libplist)/lib/pkgconfig:$(brew --prefix glib)/lib/pkgconfig:$(brew --prefix gdk-pixbuf)/lib/pkgconfig:$(brew --prefix libxml2)/lib/pkgconfig:$(brew --prefix sqlite)/lib/pkgconfig:$PKG_CONFIG_PATH"
+          fi
+          ./configure \
+            --with-python \
+            --prefix=/usr/local \
+            --disable-more-warnings \
+            --without-hal \
+            --disable-udev \
+            --without-libimobiledevice
+
+      - name: Build
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            make -j$(nproc)
+          else
+            make -j$(sysctl -n hw.ncpu)
+          fi
+
+      - name: Install to staging directory
+        run: make install DESTDIR=$(pwd)/staging
+
+      - name: Package artifacts
+        run: |
+          cd staging
+          tar czf ../${{ matrix.artifact-name }}.tar.gz .
+          cd ..
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-name }}.tar.gz
+
+      - name: Verify Python bindings
+        run: |
+          # Add the staged library paths so the module can be loaded
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            export LD_LIBRARY_PATH=$(pwd)/staging/usr/local/lib:$LD_LIBRARY_PATH
+          else
+            export DYLD_LIBRARY_PATH=$(pwd)/staging/usr/local/lib:$DYLD_LIBRARY_PATH
+          fi
+          PYTHONPATH=$(find staging -type d -name gpod | head -1 | xargs dirname)
+          export PYTHONPATH
+          python -c "import gpod; print('gpod module loaded successfully')"
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          # Collect all tarballs
+          FILES=$(find artifacts -name '*.tar.gz' -type f)
+          gh release create "$TAG" \
+            --title "libgpod $TAG" \
+            --notes "Compiled libgpod with Python bindings.
+
+          ## Included artifacts
+          - Linux x86_64 (Ubuntu 22.04, Python 3.10)
+          - Linux x86_64 (Ubuntu 24.04, Python 3.12)
+          - macOS x86_64 (Intel, Python 3.12)
+          - macOS arm64 (Apple Silicon, Python 3.12)
+
+          ## Installation
+          Extract the tarball and copy the files to your system, or set \`LD_LIBRARY_PATH\` / \`DYLD_LIBRARY_PATH\` and \`PYTHONPATH\` to point to the extracted directories." \
+            $FILES
