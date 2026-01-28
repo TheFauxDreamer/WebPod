@@ -207,7 +207,11 @@ jobs:
           fi
 
       - name: Generate build system
-        run: autoreconf -fi
+        run: |
+          # gtk-doc.make is required by automake but gtk-doc isn't available in MSYS2;
+          # create an empty stub since we don't need docs for CI builds
+          touch gtk-doc.make
+          autoreconf -fi
 
       - name: Configure
         run: |
@@ -215,6 +219,7 @@ jobs:
             --with-python \
             --prefix=/mingw64 \
             --disable-more-warnings \
+            --disable-gtk-doc \
             --without-hal \
             --disable-udev \
             --without-libimobiledevice
