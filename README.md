@@ -1,7 +1,7 @@
 # WARNING! THIS HAS NOT BEEN TESTED!!
 
 I still haven't recieved my iPod yet, so I can't actually test this tool.
-I only intend to official support the iPod Classic Video (5th gen), others should work but I won't be implementing fixes for issues on other devices.
+I only intend to actively support the iPod Classic Video (5th gen), others supported by libgpod should work but I won't be implementing fixes for issues only impacting other devices.
 Feel free to fork it yourself or submit and request with the fixes.
 
 # WebPod - iPod Web Manager
