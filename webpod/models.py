@@ -312,7 +312,7 @@ def get_podcast_series_simple():
     import os
     conn = get_db()
     rows = conn.execute("""
-        SELECT album, file_path, artwork_hash, year
+        SELECT album, file_path, artwork_hash, year, track_nr
         FROM library_tracks
         WHERE is_podcast = 1
     """).fetchall()
@@ -337,20 +337,34 @@ def get_podcast_series_simple():
                 'series_name': series_name,
                 'episode_count': 0,
                 'artwork_hash': None,
-                'earliest_year': None
+                'earliest_year': None,
+                '_latest_year': 0,
+                '_latest_track_nr': 0
             }
 
         series_map[series_name]['episode_count'] += 1
 
-        # Track artwork (use any available)
-        if row['artwork_hash'] and not series_map[series_name]['artwork_hash']:
-            series_map[series_name]['artwork_hash'] = row['artwork_hash']
+        # Track artwork from most recent episode (highest year, then highest track_nr)
+        if row['artwork_hash']:
+            year = row['year'] or 0
+            track_nr = row['track_nr'] or 0
+            current = series_map[series_name]
+            if (year > current['_latest_year']) or \
+               (year == current['_latest_year'] and track_nr > current['_latest_track_nr']):
+                current['artwork_hash'] = row['artwork_hash']
+                current['_latest_year'] = year
+                current['_latest_track_nr'] = track_nr
 
         # Track earliest year
         if row['year']:
             current_earliest = series_map[series_name]['earliest_year']
             if current_earliest is None or row['year'] < current_earliest:
                 series_map[series_name]['earliest_year'] = row['year']
+
+    # Clean up internal tracking fields
+    for series in series_map.values():
+        del series['_latest_year']
+        del series['_latest_track_nr']
 
     return sorted(series_map.values(), key=lambda x: x['series_name'])
 
