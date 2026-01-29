@@ -309,31 +309,78 @@ def get_podcast_series():
 
 def get_podcast_series_simple():
     """Get podcast series using a simpler grouping (album only, folder as fallback)."""
+    import os
     conn = get_db()
     rows = conn.execute("""
-        SELECT
-            COALESCE(NULLIF(album, ''), 'Unknown Podcast') as series_name,
-            COUNT(*) as episode_count,
-            MAX(artwork_hash) as artwork_hash,
-            MIN(year) as earliest_year
+        SELECT album, file_path, artwork_hash, year
         FROM library_tracks
         WHERE is_podcast = 1
-        GROUP BY series_name
-        ORDER BY series_name
     """).fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+
+    # Group by series name (album or folder name)
+    series_map = {}
+    for row in rows:
+        album = row['album']
+        file_path = row['file_path']
+
+        # Use album if set, otherwise extract folder name from path
+        if album and album.strip():
+            series_name = album.strip()
+        else:
+            # Extract parent folder name (works on both Windows and Unix paths)
+            parent_dir = os.path.dirname(file_path)
+            series_name = os.path.basename(parent_dir) or 'Unknown Podcast'
+
+        if series_name not in series_map:
+            series_map[series_name] = {
+                'series_name': series_name,
+                'episode_count': 0,
+                'artwork_hash': None,
+                'earliest_year': None
+            }
+
+        series_map[series_name]['episode_count'] += 1
+
+        # Track artwork (use any available)
+        if row['artwork_hash'] and not series_map[series_name]['artwork_hash']:
+            series_map[series_name]['artwork_hash'] = row['artwork_hash']
+
+        # Track earliest year
+        if row['year']:
+            current_earliest = series_map[series_name]['earliest_year']
+            if current_earliest is None or row['year'] < current_earliest:
+                series_map[series_name]['earliest_year'] = row['year']
+
+    return sorted(series_map.values(), key=lambda x: x['series_name'])
 
 
 def get_podcast_episodes(series_name):
     """Get episodes for a podcast series."""
+    import os
     conn = get_db()
     rows = conn.execute("""
         SELECT *
         FROM library_tracks
         WHERE is_podcast = 1
-          AND (album = ? OR (album IS NULL OR album = '') AND ? = 'Unknown Podcast')
         ORDER BY COALESCE(track_nr, 0) DESC, year DESC, title
-    """, (series_name, series_name)).fetchall()
+    """).fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+
+    # Filter episodes matching the series name (by album or folder)
+    episodes = []
+    for row in rows:
+        album = row['album']
+        file_path = row['file_path']
+
+        # Determine this episode's series name
+        if album and album.strip():
+            ep_series = album.strip()
+        else:
+            parent_dir = os.path.dirname(file_path)
+            ep_series = os.path.basename(parent_dir) or 'Unknown Podcast'
+
+        if ep_series == series_name:
+            episodes.append(dict(row))
+
+    return episodes
