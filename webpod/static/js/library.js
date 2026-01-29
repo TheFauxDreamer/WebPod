@@ -258,7 +258,8 @@ var Library = {
      * Load tracks for a specific album, switch to tracks view
      */
     loadAlbumTracks: function(albumName) {
-        WebPod.switchView('tracks');
+        WebPod.switchView('tracks', true);  // Skip auto-load, we'll load with filter
+        WebPod.skipSearchHandler = true;  // Prevent search handler from firing
         document.getElementById('search-input').value = albumName;
         Library.loadTracks(null, null, albumName);  // Use exact album filter
     },

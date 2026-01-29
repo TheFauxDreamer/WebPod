@@ -7,6 +7,7 @@ var WebPod = {
     currentView: 'albums',
     libraryPath: null,
     searchTimeout: null,
+    skipSearchHandler: false,  // Flag to skip search when setting input programmatically
 
     /**
      * Show a toast notification
@@ -64,8 +65,10 @@ var WebPod = {
 
     /**
      * Switch between content views
+     * @param {string} view - The view to switch to
+     * @param {boolean} skipLoad - If true, skip auto-loading data (for filtered loads)
      */
-    switchView: function(view) {
+    switchView: function(view, skipLoad) {
         WebPod.currentView = view;
         var views = ['albums', 'tracks', 'podcasts', 'ipod-tracks'];
         var buttons = {
@@ -92,14 +95,16 @@ var WebPod = {
             }
         });
 
-        if (view === 'albums') {
-            Library.loadAlbums();
-        } else if (view === 'tracks') {
-            Library.loadTracks();
-        } else if (view === 'podcasts') {
-            Podcasts.loadSeries();
-        } else if (view === 'ipod-tracks') {
-            IPod.loadTracks();
+        if (!skipLoad) {
+            if (view === 'albums') {
+                Library.loadAlbums();
+            } else if (view === 'tracks') {
+                Library.loadTracks();
+            } else if (view === 'podcasts') {
+                Podcasts.loadSeries();
+            } else if (view === 'ipod-tracks') {
+                IPod.loadTracks();
+            }
         }
     },
 
@@ -109,6 +114,11 @@ var WebPod = {
     initSearch: function() {
         var searchInput = document.getElementById('search-input');
         searchInput.addEventListener('input', function() {
+            // Skip if flag is set (programmatic value change from loadAlbumTracks)
+            if (WebPod.skipSearchHandler) {
+                WebPod.skipSearchHandler = false;
+                return;
+            }
             clearTimeout(WebPod.searchTimeout);
             WebPod.searchTimeout = setTimeout(function() {
                 var query = searchInput.value.trim();
