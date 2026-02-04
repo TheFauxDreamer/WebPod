@@ -102,19 +102,26 @@
 
             <!-- Track List View -->
             <div id="tracks-view" class="content-view hidden">
-                <table id="tracks-table">
-                    <thead>
-                        <tr>
-                            <th class="col-nr">#</th>
-                            <th class="col-title">Title</th>
-                            <th class="col-artist">Artist</th>
-                            <th class="col-album">Album</th>
-                            <th class="col-genre">Genre</th>
-                            <th class="col-duration">Duration</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tracks-tbody"></tbody>
-                </table>
+                <div id="tracks-scroll-container">
+                    <table id="tracks-table">
+                        <thead>
+                            <tr>
+                                <th class="col-nr">#</th>
+                                <th class="col-title">Title</th>
+                                <th class="col-artist">Artist</th>
+                                <th class="col-album">Album</th>
+                                <th class="col-genre">Genre</th>
+                                <th class="col-format">Format</th>
+                                <th class="col-duration">Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tracks-tbody"></tbody>
+                    </table>
+                    <!-- Sentinel element for infinite scroll detection -->
+                    <div id="tracks-sentinel"></div>
+                    <!-- Loading indicator -->
+                    <div id="tracks-loading" class="loading-indicator hidden">Loading more tracks...</div>
+                </div>
             </div>
 
             <!-- Podcasts View -->
@@ -206,11 +213,23 @@
                 <div id="settings-progress-text"></div>
             </div>
 
+            <div class="settings-group checkbox-group">
+                <input type="checkbox" id="show-format-tags" />
+                <label for="show-format-tags">Show format tags (MP3, FLAC, etc.)</label>
+            </div>
+
+            <div class="settings-group checkbox-group">
+                <input type="checkbox" id="colorful-albums" />
+                <label for="colorful-albums">Colorful albums</label>
+            </div>
+
             <div class="settings-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="show-format-tags" />
-                    Show format tags (MP3, FLAC, etc.)
-                </label>
+                <label>Theme</label>
+                <select id="theme-select">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="auto">Auto (System)</option>
+                </select>
             </div>
 
             <div class="dialog-actions">

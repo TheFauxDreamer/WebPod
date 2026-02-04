@@ -60,7 +60,10 @@ def get_settings():
     music_path = models.get_setting('music_library_path')
     podcast_path = models.get_setting('podcast_library_path')
     export_path = models.get_setting('export_path') or models.DEFAULT_EXPORT_PATH
-    show_format_tags = models.get_setting('show_format_tags') == '1'
+    show_format_tags_setting = models.get_setting('show_format_tags')
+    show_format_tags = show_format_tags_setting != '0'  # Default to True
+    colorful_albums = models.get_setting('colorful_albums') != '0'  # Default to True
+    theme = models.get_setting('theme') or 'auto'
     return jsonify({
         'music_path': music_path,
         'podcast_path': podcast_path,
@@ -69,7 +72,9 @@ def get_settings():
         'podcast_set': bool(podcast_path),
         'music_count': models.get_track_count(is_podcast=False),
         'podcast_count': models.get_track_count(is_podcast=True),
-        'show_format_tags': show_format_tags
+        'show_format_tags': show_format_tags,
+        'colorful_albums': colorful_albums,
+        'theme': theme
     })
 
 
@@ -97,6 +102,14 @@ def save_settings():
 
     if 'show_format_tags' in data:
         models.set_setting('show_format_tags', '1' if data['show_format_tags'] else '0')
+
+    if 'colorful_albums' in data:
+        models.set_setting('colorful_albums', '1' if data['colorful_albums'] else '0')
+
+    if 'theme' in data:
+        theme = data['theme']
+        if theme in ('light', 'dark', 'auto'):
+            models.set_setting('theme', theme)
 
     return jsonify({"success": True})
 

@@ -26,6 +26,7 @@ var Library = {
     tracksPerPage: 100,
     tracksSearch: '',
     tracksSort: 'title',
+    tracksObserver: null,  // Intersection Observer for infinite scroll
 
     // Album expansion state
     expandedAlbum: null,
@@ -140,9 +141,17 @@ var Library = {
             Library.lastSelectedIndex = -1;
             Library.tracksSearch = search || '';
             Library.tracksSort = sort;
+
+            // Destroy existing observer on fresh load - will be recreated lazily
+            // This ensures the observer is created with the visible scroll container
+            if (Library.tracksObserver) {
+                Library.tracksObserver.disconnect();
+                Library.tracksObserver = null;
+            }
         }
 
         Library.tracksLoading = true;
+        Library.showLoadingIndicator(true);
 
         // Build URL with pagination (unless filtering by album)
         var url = '/api/library/tracks?page=' + Library.tracksPage +
@@ -159,7 +168,11 @@ var Library = {
             var tbody = document.getElementById('tracks-tbody');
             var empty = document.getElementById('empty-state');
             var tracks = data.tracks || data || [];
-            Library.tracksTotal = data.total || tracks.length;
+
+            // CRITICAL FIX: Only set tracksTotal on first page load (not when appending)
+            if (!append) {
+                Library.tracksTotal = data.total || 0;
+            }
 
             // Append or replace tracks
             if (append) {
@@ -193,16 +206,7 @@ var Library = {
                 tdNr.textContent = track.track_nr || '';
 
                 var tdTitle = document.createElement('td');
-                var trackTitle = track.title || 'Unknown';
-                if (WebPod.showFormatTags && track.format) {
-                    var formatSpan = document.createElement('span');
-                    formatSpan.className = 'format-tag';
-                    formatSpan.textContent = track.format.toUpperCase();
-                    tdTitle.textContent = trackTitle;
-                    tdTitle.appendChild(formatSpan);
-                } else {
-                    tdTitle.textContent = trackTitle;
-                }
+                tdTitle.textContent = track.title || 'Unknown';
 
                 var tdArtist = document.createElement('td');
                 tdArtist.textContent = track.artist || 'Unknown';
@@ -213,6 +217,14 @@ var Library = {
                 var tdGenre = document.createElement('td');
                 tdGenre.textContent = track.genre || '';
 
+                var tdFormat = document.createElement('td');
+                if (WebPod.showFormatTags && track.format) {
+                    var formatSpan = document.createElement('span');
+                    formatSpan.className = 'format-tag';
+                    formatSpan.textContent = track.format.toUpperCase();
+                    tdFormat.appendChild(formatSpan);
+                }
+
                 var tdDuration = document.createElement('td');
                 tdDuration.textContent = WebPod.formatDuration(track.duration_ms);
 
@@ -221,6 +233,7 @@ var Library = {
                 tr.appendChild(tdArtist);
                 tr.appendChild(tdAlbum);
                 tr.appendChild(tdGenre);
+                tr.appendChild(tdFormat);
                 tr.appendChild(tdDuration);
 
                 // Click to select with shift/ctrl support
@@ -252,8 +265,13 @@ var Library = {
             } else {
                 Library.updateStats(Library.allTracks.length + ' tracks');
             }
+
+            // Hide loading indicator and re-observe sentinel for more loading
+            Library.showLoadingIndicator(false);
+            Library.observeSentinel();
         }).catch(function() {
             Library.tracksLoading = false;
+            Library.showLoadingIndicator(false);
         });
     },
 
@@ -262,7 +280,13 @@ var Library = {
      */
     loadMoreTracks: function() {
         if (Library.tracksLoading) return;
-        if (Library.allTracks.length >= Library.tracksTotal) return;
+        if (Library.allTracks.length >= Library.tracksTotal) {
+            // All tracks loaded - disconnect observer to stop watching
+            if (Library.tracksObserver) {
+                Library.tracksObserver.disconnect();
+            }
+            return;
+        }
 
         Library.tracksPage++;
         Library.loadTracks(Library.tracksSearch, Library.tracksSort, null, true);
@@ -522,6 +546,7 @@ var Library = {
         artContainer.className = 'album-expansion-art';
 
         var artImg = document.createElement('img');
+        artImg.crossOrigin = 'anonymous';  // Enable CORS for canvas color extraction
         if (albumData.artwork_hash) {
             artImg.src = '/api/artwork/' + albumData.artwork_hash;
         } else {
@@ -530,6 +555,24 @@ var Library = {
         artImg.alt = albumData.album || 'Album art';
         artImg.onerror = function() {
             this.src = PLACEHOLDER_IMG;
+        };
+
+        // Extract dominant color for colorful album background
+        artImg.onload = function() {
+            if (WebPod.colorfulAlbums && albumData.artwork_hash) {
+                WebPod.extractDominantColor(artImg, function(color) {
+                    if (color) {
+                        // Apply gradient from dominant color to darker shade
+                        var darkR = Math.floor(color.r * 0.3);
+                        var darkG = Math.floor(color.g * 0.3);
+                        var darkB = Math.floor(color.b * 0.3);
+                        panel.style.background = 'linear-gradient(135deg, ' +
+                            'rgb(' + color.r + ',' + color.g + ',' + color.b + ') 0%, ' +
+                            'rgb(' + darkR + ',' + darkG + ',' + darkB + ') 100%)';
+                        panel.classList.add('colorful');
+                    }
+                });
+            }
         };
 
         artContainer.appendChild(artImg);
@@ -655,10 +698,32 @@ var Library = {
             artist.textContent += ' (' + albumData.year + ')';
         }
 
-        // Update album art
+        // Update album art and colorful background
         var artImg = panel.querySelector('.album-expansion-art img');
+        artImg.crossOrigin = 'anonymous';
+
+        // Reset colorful state
+        panel.classList.remove('colorful');
+        panel.style.background = '';
+
         if (albumData.artwork_hash) {
             artImg.src = '/api/artwork/' + albumData.artwork_hash;
+            // Re-apply colorful background after new image loads
+            artImg.onload = function() {
+                if (WebPod.colorfulAlbums) {
+                    WebPod.extractDominantColor(artImg, function(color) {
+                        if (color) {
+                            var darkR = Math.floor(color.r * 0.3);
+                            var darkG = Math.floor(color.g * 0.3);
+                            var darkB = Math.floor(color.b * 0.3);
+                            panel.style.background = 'linear-gradient(135deg, ' +
+                                'rgb(' + color.r + ',' + color.g + ',' + color.b + ') 0%, ' +
+                                'rgb(' + darkR + ',' + darkG + ',' + darkB + ') 100%)';
+                            panel.classList.add('colorful');
+                        }
+                    });
+                }
+            };
         } else {
             artImg.src = PLACEHOLDER_IMG;
         }
@@ -856,22 +921,64 @@ var Library = {
     },
 
     /**
-     * Initialize infinite scroll for tracks view
+     * Initialize infinite scroll for tracks view.
+     * Note: Observer is created lazily in observeSentinel() when view is visible.
+     * This ensures the scroll container has proper dimensions.
      */
     initTracksScroll: function() {
-        var tracksView = document.getElementById('tracks-view');
-        if (!tracksView) return;
+        // Observer will be created lazily when tracks view is shown
+        // This is intentional - creating it here would fail because
+        // the tracks-view is hidden at DOMContentLoaded time
+    },
 
-        tracksView.addEventListener('scroll', function() {
-            // Only load more if we're in tracks view
-            if (WebPod.currentView !== 'tracks') return;
+    /**
+     * Observe the sentinel element for infinite scroll.
+     * Creates the observer lazily to ensure scroll container is visible.
+     */
+    observeSentinel: function() {
+        var sentinel = document.getElementById('tracks-sentinel');
+        var scrollContainer = document.getElementById('tracks-scroll-container');
 
-            // Load more when within 200px of the bottom
-            var scrollBottom = tracksView.scrollHeight - tracksView.scrollTop - tracksView.clientHeight;
-            if (scrollBottom < 200) {
-                Library.loadMoreTracks();
+        if (!sentinel || !scrollContainer) return;
+
+        // Don't observe if all tracks are already loaded
+        if (Library.allTracks.length >= Library.tracksTotal) {
+            if (Library.tracksObserver) {
+                Library.tracksObserver.disconnect();
             }
-        });
+            return;
+        }
+
+        // Create observer lazily - ensures container is visible with proper dimensions
+        if (!Library.tracksObserver) {
+            Library.tracksObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting && !Library.tracksLoading) {
+                        if (WebPod.currentView === 'tracks') {
+                            Library.loadMoreTracks();
+                        }
+                    }
+                });
+            }, {
+                root: scrollContainer,
+                rootMargin: '200px',
+                threshold: 0
+            });
+        }
+
+        // Disconnect and re-observe
+        Library.tracksObserver.disconnect();
+        Library.tracksObserver.observe(sentinel);
+    },
+
+    /**
+     * Show or hide the loading indicator
+     */
+    showLoadingIndicator: function(show) {
+        var indicator = document.getElementById('tracks-loading');
+        if (indicator) {
+            indicator.classList.toggle('hidden', !show);
+        }
     },
 
     /**

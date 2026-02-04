@@ -8,6 +8,7 @@ var WebPod = {
     libraryPath: null,
     searchTimeout: null,
     skipSearchHandler: false,  // Flag to skip search when setting input programmatically
+    theme: 'dark',
 
     /**
      * Show a toast notification
@@ -61,6 +62,62 @@ var WebPod = {
                 WebPod.toast(err.message, 'error');
                 throw err;
             });
+    },
+
+    /**
+     * Apply the current theme to the document
+     */
+    applyTheme: function() {
+        var theme = WebPod.theme;
+        if (theme === 'auto') {
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        } else {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+    },
+
+    /**
+     * Initialize system theme change listener for auto mode
+     */
+    initThemeListener: function() {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+            if (WebPod.theme === 'auto') {
+                WebPod.applyTheme();
+            }
+        });
+    },
+
+    /**
+     * Extract dominant color from an image for colorful album backgrounds
+     */
+    extractDominantColor: function(img, callback) {
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        var size = 50;  // Sample at small size for performance
+        canvas.width = size;
+        canvas.height = size;
+
+        try {
+            ctx.drawImage(img, 0, 0, size, size);
+            var data = ctx.getImageData(0, 0, size, size).data;
+
+            // Simple average color
+            var r = 0, g = 0, b = 0, count = 0;
+            for (var i = 0; i < data.length; i += 4) {
+                r += data[i];
+                g += data[i + 1];
+                b += data[i + 2];
+                count++;
+            }
+            r = Math.floor(r / count);
+            g = Math.floor(g / count);
+            b = Math.floor(b / count);
+
+            callback({ r: r, g: g, b: b });
+        } catch (e) {
+            callback(null);  // CORS or other error
+        }
     },
 
     /**
@@ -230,7 +287,10 @@ var WebPod = {
             WebPod.musicPath = data.music_path || '';
             WebPod.podcastPath = data.podcast_path || '';
             WebPod.exportPath = data.export_path || '';
-            WebPod.showFormatTags = data.show_format_tags || false;
+            WebPod.showFormatTags = data.show_format_tags !== false;  // Default to true
+            WebPod.colorfulAlbums = data.colorful_albums !== false;  // Default to true
+            WebPod.theme = data.theme || 'auto';
+            WebPod.applyTheme();
         }).catch(function() {
             // Settings not available
         });
@@ -251,6 +311,8 @@ var WebPod = {
         var podcastScanBtn = document.getElementById('podcast-scan-btn');
         var exportBtn = document.getElementById('export-btn');
         var formatTagsCheckbox = document.getElementById('show-format-tags');
+        var colorfulAlbumsCheckbox = document.getElementById('colorful-albums');
+        var themeSelect = document.getElementById('theme-select');
 
         // Open settings dialog
         settingsBtn.addEventListener('click', function() {
@@ -258,6 +320,8 @@ var WebPod = {
             podcastInput.value = WebPod.podcastPath || '';
             exportInput.value = WebPod.exportPath || '';
             formatTagsCheckbox.checked = WebPod.showFormatTags || false;
+            colorfulAlbumsCheckbox.checked = WebPod.colorfulAlbums !== false;  // Default to true
+            themeSelect.value = WebPod.theme || 'auto';
             musicScanBtn.disabled = !WebPod.musicPath;
             podcastScanBtn.disabled = !WebPod.podcastPath;
             // Export button enabled only if iPod is connected
@@ -353,6 +417,8 @@ var WebPod = {
             var podcastPath = podcastInput.value.trim();
             var exportPath = exportInput.value.trim();
             var showFormatTags = formatTagsCheckbox.checked;
+            var colorfulAlbums = colorfulAlbumsCheckbox.checked;
+            var theme = themeSelect.value;
 
             WebPod.api('/api/settings', {
                 method: 'POST',
@@ -360,13 +426,18 @@ var WebPod = {
                     music_path: musicPath,
                     podcast_path: podcastPath,
                     export_path: exportPath,
-                    show_format_tags: showFormatTags
+                    show_format_tags: showFormatTags,
+                    colorful_albums: colorfulAlbums,
+                    theme: theme
                 }
             }).then(function() {
                 WebPod.musicPath = musicPath;
                 WebPod.podcastPath = podcastPath;
                 WebPod.exportPath = exportPath;
                 WebPod.showFormatTags = showFormatTags;
+                WebPod.colorfulAlbums = colorfulAlbums;
+                WebPod.theme = theme;
+                WebPod.applyTheme();
                 WebPod.loadSettings();
                 dialog.classList.add('hidden');
                 WebPod.toast('Settings saved', 'success');
@@ -504,6 +575,7 @@ var WebPod = {
         WebPod.initSettingsModal();
         WebPod.initSearch();
         WebPod.initSort();
+        WebPod.initThemeListener();
 
         // Default view
         WebPod.switchView('albums');
