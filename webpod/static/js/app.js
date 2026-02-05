@@ -624,6 +624,8 @@ var WebPod = {
             WebPod.showFormatTags = data.show_format_tags !== false;  // Default to true
             WebPod.colorfulAlbums = data.colorful_albums !== false;  // Default to true
             WebPod.allowFilesWithoutMetadata = data.allow_files_without_metadata === true;  // Default to false (unchecked)
+            WebPod.transcodeFlacToIpod = data.transcode_flac_to_ipod !== false;  // Default to true
+            WebPod.transcodeFlacFormat = data.transcode_flac_format || 'alac';  // Default to ALAC
             WebPod.theme = data.theme || 'auto';
             WebPod.applyTheme();
         }).catch(function() {
@@ -648,7 +650,19 @@ var WebPod = {
         var formatTagsCheckbox = document.getElementById('show-format-tags');
         var colorfulAlbumsCheckbox = document.getElementById('colorful-albums');
         var allowNoMetadataCheckbox = document.getElementById('allow-files-without-metadata');
+        var transcodeFlacCheckbox = document.getElementById('transcode-flac-to-ipod');
+        var transcodeFlacFormat = document.getElementById('transcode-flac-format');
+        var transcodeFormatGroup = document.getElementById('transcode-format-group');
         var themeSelect = document.getElementById('theme-select');
+
+        // Show/hide format dropdown based on checkbox
+        transcodeFlacCheckbox.addEventListener('change', function() {
+            if (transcodeFlacCheckbox.checked) {
+                transcodeFormatGroup.style.display = 'flex';
+            } else {
+                transcodeFormatGroup.style.display = 'none';
+            }
+        });
 
         // Open settings dialog
         settingsBtn.addEventListener('click', function() {
@@ -658,7 +672,16 @@ var WebPod = {
             formatTagsCheckbox.checked = WebPod.showFormatTags || false;
             colorfulAlbumsCheckbox.checked = WebPod.colorfulAlbums !== false;  // Default to true
             allowNoMetadataCheckbox.checked = WebPod.allowFilesWithoutMetadata === true;  // Default to false (unchecked)
+            transcodeFlacCheckbox.checked = WebPod.transcodeFlacToIpod !== false;  // Default to true (enabled)
+            transcodeFlacFormat.value = WebPod.transcodeFlacFormat || 'alac';  // Default to ALAC
             themeSelect.value = WebPod.theme || 'auto';
+
+            // Update format dropdown visibility
+            if (transcodeFlacCheckbox.checked) {
+                transcodeFormatGroup.style.display = 'flex';
+            } else {
+                transcodeFormatGroup.style.display = 'none';
+            }
             musicScanBtn.disabled = !WebPod.musicPath;
             podcastScanBtn.disabled = !WebPod.podcastPath;
             // Export button enabled only if iPod is connected
@@ -756,6 +779,8 @@ var WebPod = {
             var showFormatTags = formatTagsCheckbox.checked;
             var colorfulAlbums = colorfulAlbumsCheckbox.checked;
             var allowNoMetadata = allowNoMetadataCheckbox.checked;
+            var transcodeFlac = transcodeFlacCheckbox.checked;
+            var transcodeFormat = transcodeFlacFormat.value;
             var theme = themeSelect.value;
 
             WebPod.api('/api/settings', {
@@ -767,6 +792,8 @@ var WebPod = {
                     show_format_tags: showFormatTags,
                     colorful_albums: colorfulAlbums,
                     allow_files_without_metadata: allowNoMetadata,
+                    transcode_flac_to_ipod: transcodeFlac,
+                    transcode_flac_format: transcodeFormat,
                     theme: theme
                 }
             }).then(function() {
@@ -776,6 +803,8 @@ var WebPod = {
                 WebPod.showFormatTags = showFormatTags;
                 WebPod.colorfulAlbums = colorfulAlbums;
                 WebPod.allowFilesWithoutMetadata = allowNoMetadata;
+                WebPod.transcodeFlacToIpod = transcodeFlac;
+                WebPod.transcodeFlacFormat = transcodeFormat;
                 WebPod.theme = theme;
                 WebPod.applyTheme();
                 WebPod.loadSettings();

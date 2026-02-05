@@ -67,6 +67,13 @@ def get_settings():
     allow_no_metadata_setting = models.get_setting('allow_files_without_metadata')
     # Default to False (disallow) if not set - cleaner libraries by default
     allow_no_metadata = allow_no_metadata_setting == '1'
+
+    # Transcoding settings
+    transcode_flac = models.get_setting('transcode_flac_to_ipod')
+    # Default to True (enable) if not set - FLAC files won't work on iPod otherwise
+    transcode_flac_enabled = transcode_flac != '0'  # None or '1' = enabled
+    transcode_format = models.get_setting('transcode_flac_format') or 'alac'
+
     return jsonify({
         'music_path': music_path,
         'podcast_path': podcast_path,
@@ -78,7 +85,9 @@ def get_settings():
         'show_format_tags': show_format_tags,
         'colorful_albums': colorful_albums,
         'theme': theme,
-        'allow_files_without_metadata': allow_no_metadata
+        'allow_files_without_metadata': allow_no_metadata,
+        'transcode_flac_to_ipod': transcode_flac_enabled,
+        'transcode_flac_format': transcode_format
     })
 
 
@@ -117,6 +126,15 @@ def save_settings():
 
     if 'allow_files_without_metadata' in data:
         models.set_setting('allow_files_without_metadata', '1' if data['allow_files_without_metadata'] else '0')
+
+    if 'transcode_flac_to_ipod' in data:
+        models.set_setting('transcode_flac_to_ipod', '1' if data['transcode_flac_to_ipod'] else '0')
+
+    if 'transcode_flac_format' in data:
+        # Validate format is 'alac' or 'mp3'
+        fmt = data['transcode_flac_format']
+        if fmt in ['alac', 'mp3']:
+            models.set_setting('transcode_flac_format', fmt)
 
     return jsonify({"success": True})
 

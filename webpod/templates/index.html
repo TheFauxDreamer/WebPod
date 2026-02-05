@@ -319,6 +319,19 @@
                 <label for="allow-files-without-metadata">Allow songs without metadata</label>
             </div>
 
+            <div class="settings-group checkbox-group">
+                <input type="checkbox" id="transcode-flac-to-ipod" checked />
+                <label for="transcode-flac-to-ipod">Transcode FLAC files when syncing to iPod</label>
+            </div>
+
+            <div class="settings-group" id="transcode-format-group" style="margin-left: 30px;">
+                <label for="transcode-flac-format">Transcode format:</label>
+                <select id="transcode-flac-format" style="margin-left: 10px;">
+                    <option value="alac">ALAC (Apple Lossless - no quality loss)</option>
+                    <option value="mp3">MP3 (320kbps - smaller files)</option>
+                </select>
+            </div>
+
             <div class="settings-group">
                 <label>Theme</label>
                 <select id="theme-select">

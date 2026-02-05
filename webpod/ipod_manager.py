@@ -7,7 +7,10 @@ thread-safe methods for all iPod operations used by the web interface.
 import os
 import re
 import shutil
+import subprocess
+import tempfile
 import threading
+from pathlib import Path
 
 try:
     import gpod
@@ -16,6 +19,81 @@ except ImportError:
 
 from .duplicate_detector import sha1_hash
 from .artwork import get_artwork_path
+from . import models
+
+
+def transcode_flac_to_alac(flac_path, target_format='alac'):
+    """Transcode a FLAC file to ALAC (or MP3) using ffmpeg.
+
+    Args:
+        flac_path: Path to the FLAC file
+        target_format: 'alac' (default) or 'mp3'
+
+    Returns:
+        Path to the transcoded temporary file, or None if transcoding failed
+    """
+    # Check if ffmpeg is available
+    try:
+        subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print("ERROR: ffmpeg not found. Install with: brew install ffmpeg (macOS) or apt-get install ffmpeg (Linux)")
+        return None
+
+    # Create temp file with appropriate extension
+    ext = '.m4a' if target_format == 'alac' else '.mp3'
+    temp_fd, temp_path = tempfile.mkstemp(suffix=ext, prefix='webpod_transcode_')
+    os.close(temp_fd)  # Close file descriptor, ffmpeg will open it
+
+    try:
+        if target_format == 'alac':
+            # Transcode to ALAC (Apple Lossless) in M4A container
+            # -acodec alac: Use ALAC codec
+            # -map_metadata 0: Copy all metadata from source
+            cmd = [
+                'ffmpeg',
+                '-i', flac_path,
+                '-acodec', 'alac',
+                '-map_metadata', '0',
+                '-y',  # Overwrite output file
+                temp_path
+            ]
+        else:
+            # Transcode to MP3
+            # -b:a 320k: High quality MP3 (320 kbps)
+            # -map_metadata 0: Copy all metadata
+            cmd = [
+                'ffmpeg',
+                '-i', flac_path,
+                '-b:a', '320k',
+                '-map_metadata', '0',
+                '-y',
+                temp_path
+            ]
+
+        # Run ffmpeg (capture output for error handling)
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minute timeout for large files
+        )
+
+        if result.returncode != 0:
+            print(f"ERROR: ffmpeg transcoding failed: {result.stderr}")
+            os.unlink(temp_path)
+            return None
+
+        return temp_path
+
+    except subprocess.TimeoutExpired:
+        print(f"ERROR: ffmpeg transcoding timed out for {flac_path}")
+        os.unlink(temp_path)
+        return None
+    except Exception as e:
+        print(f"ERROR: Transcoding failed: {e}")
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+        return None
 
 
 class IPodError(Exception):
@@ -179,6 +257,7 @@ class IPodManager:
             added = []
             skipped = []
             errors = []
+            transcoded_temp_files = []  # Track temp files for cleanup
 
             for lib_track in library_tracks:
                 file_path = lib_track['file_path']
@@ -193,6 +272,33 @@ class IPodManager:
                         'reason': 'Already on iPod',
                     })
                     continue
+
+                # Check if transcoding is needed
+                original_path = file_path
+                is_flac = Path(file_path).suffix.lower() == '.flac'
+
+                if is_flac:
+                    # Check user settings
+                    transcode_flac = models.get_setting('transcode_flac_to_ipod')
+                    transcode_format = models.get_setting('transcode_flac_format') or 'alac'
+
+                    # Default: enable transcoding for FLAC files (they won't work otherwise)
+                    if transcode_flac != '0':  # '1' or None (not set) = enable
+                        print(f"Transcoding FLAC file: {Path(file_path).name}")
+                        transcoded_path = transcode_flac_to_alac(file_path, target_format=transcode_format)
+
+                        if transcoded_path:
+                            file_path = transcoded_path
+                            transcoded_temp_files.append(transcoded_path)
+                            print(f"Transcoded to: {Path(transcoded_path).name}")
+                        else:
+                            print(f"WARNING: Transcoding failed for {Path(file_path).name}, skipping file")
+                            errors.append({
+                                'file_path': original_path,
+                                'title': lib_track.get('title', ''),
+                                'error': 'Transcoding failed',
+                            })
+                            continue  # Skip this file if transcoding fails
 
                 try:
                     # Create track on iPod (extracts ID3 tags automatically)
@@ -225,6 +331,14 @@ class IPodManager:
                         'title': lib_track.get('title', ''),
                         'error': str(e),
                     })
+
+            # Clean up temporary transcoded files
+            for temp_file in transcoded_temp_files:
+                try:
+                    if os.path.exists(temp_file):
+                        os.unlink(temp_file)
+                except Exception as e:
+                    print(f"WARNING: Failed to delete temp file {temp_file}: {e}")
 
             return {
                 'added': added,
