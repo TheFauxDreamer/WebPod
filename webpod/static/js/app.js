@@ -380,12 +380,28 @@ var WebPod = {
 
     /**
      * Perform unified search across albums, tracks, and podcasts
+     * @param {string} query - Search query
+     * @param {object} options - Options object with showAllAlbums, showAllTracks, showAllPodcasts flags
      */
-    performSearch: function(query, showAll) {
+    performSearch: function(query, options) {
         WebPod.lastSearchQuery = query;
 
+        // Handle legacy boolean parameter (convert to options object)
+        if (typeof options === 'boolean') {
+            options = {
+                showAllAlbums: options,
+                showAllTracks: options,
+                showAllPodcasts: options
+            };
+        } else if (!options) {
+            options = {};
+        }
+
         // Create unique query identifier to handle race conditions
-        var queryId = query + '|' + WebPod.selectedFormats.join(',') + '|' + (showAll ? 'all' : 'limited');
+        var showAllFlags = (options.showAllAlbums ? 'a' : '') +
+                          (options.showAllTracks ? 't' : '') +
+                          (options.showAllPodcasts ? 'p' : '');
+        var queryId = query + '|' + WebPod.selectedFormats.join(',') + '|' + showAllFlags;
         WebPod.currentSearchQuery = queryId;
 
         var url = '/api/search?q=' + encodeURIComponent(query);
@@ -397,9 +413,15 @@ var WebPod = {
             });
         }
 
-        // Add show_all parameter if requested
-        if (showAll) {
-            url += '&show_all=true';
+        // Add category-specific show_all parameters
+        if (options.showAllAlbums) {
+            url += '&show_all_albums=true';
+        }
+        if (options.showAllTracks) {
+            url += '&show_all_tracks=true';
+        }
+        if (options.showAllPodcasts) {
+            url += '&show_all_podcasts=true';
         }
 
         WebPod.api(url).then(function(data) {
@@ -904,19 +926,25 @@ var WebPod = {
         // Add "Show more" button handlers
         document.getElementById('show-more-albums').addEventListener('click', function() {
             if (WebPod.lastSearchQuery) {
-                WebPod.performSearch(WebPod.lastSearchQuery, true);
+                WebPod.performSearch(WebPod.lastSearchQuery, {
+                    showAllAlbums: true
+                });
             }
         });
 
         document.getElementById('show-more-tracks').addEventListener('click', function() {
             if (WebPod.lastSearchQuery) {
-                WebPod.performSearch(WebPod.lastSearchQuery, true);
+                WebPod.performSearch(WebPod.lastSearchQuery, {
+                    showAllTracks: true
+                });
             }
         });
 
         document.getElementById('show-more-podcasts').addEventListener('click', function() {
             if (WebPod.lastSearchQuery) {
-                WebPod.performSearch(WebPod.lastSearchQuery, true);
+                WebPod.performSearch(WebPod.lastSearchQuery, {
+                    showAllPodcasts: true
+                });
             }
         });
 

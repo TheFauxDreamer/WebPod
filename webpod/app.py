@@ -253,7 +253,9 @@ def search():
     """Unified search across albums, tracks, and podcasts."""
     query = request.args.get('q', '').strip()
     formats = request.args.getlist('formats')
-    show_all = request.args.get('show_all', 'false') == 'true'
+    show_all_albums = request.args.get('show_all_albums', 'false') == 'true'
+    show_all_tracks = request.args.get('show_all_tracks', 'false') == 'true'
+    show_all_podcasts = request.args.get('show_all_podcasts', 'false') == 'true'
 
     if not query:
         return jsonify({
@@ -262,15 +264,10 @@ def search():
             'podcasts': [], 'podcasts_total': 0
         })
 
-    # Use unlimited limits if show_all is true
-    if show_all:
-        limit_albums = None
-        limit_tracks = None
-        limit_podcasts = None
-    else:
-        limit_albums = 20
-        limit_tracks = 40
-        limit_podcasts = 20
+    # Set limits based on show_all parameters for each category
+    limit_albums = None if show_all_albums else 20
+    limit_tracks = None if show_all_tracks else 40
+    limit_podcasts = None if show_all_podcasts else 20
 
     results = models.search_all(
         query,
