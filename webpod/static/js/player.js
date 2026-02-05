@@ -90,14 +90,22 @@ var Player = {
         Player.audio.pause();
         Player.audio.src = '/api/library/stream/' + track.id;
 
-        // Catch play() Promise to prevent AbortError from cascading
+        // Catch play() Promise to handle errors
         var playPromise = Player.audio.play();
-        if (playPromise) {
+        if (playPromise !== undefined) {
             playPromise.catch(function(e) {
                 // AbortError is expected when src changes during load -- ignore it
-                if (e.name !== 'AbortError') {
-                    console.error('Play failed:', e);
+                if (e.name === 'AbortError') {
+                    return;
                 }
+                // NotAllowedError happens when autoplay is blocked by browser policy
+                if (e.name === 'NotAllowedError') {
+                    console.warn('Autoplay blocked - user interaction required');
+                    WebPod.toast('Click play button to start', 'info');
+                    return;
+                }
+                console.error('Play failed:', e);
+                WebPod.toast('Playback failed: ' + e.name, 'error');
             });
         }
 

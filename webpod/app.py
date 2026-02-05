@@ -496,16 +496,32 @@ AUDIO_MIME_TYPES = {
 
 @app.route('/api/library/stream/<int:track_id>')
 def stream_track(track_id):
-    """Stream an audio file for browser playback."""
+    """Stream an audio file for browser playback with Range request support."""
     tracks = models.get_tracks_by_ids([track_id])
     if not tracks:
         return '', 404
     file_path = tracks[0]['file_path']
     if not os.path.isfile(file_path):
         return '', 404
+
     ext = Path(file_path).suffix.lower()
     mimetype = AUDIO_MIME_TYPES.get(ext, 'application/octet-stream')
-    return send_file(file_path, mimetype=mimetype, conditional=True)
+
+    # send_file with conditional=True enables Range request support
+    # This allows browsers to seek and buffer efficiently
+    response = send_file(
+        file_path,
+        mimetype=mimetype,
+        conditional=True,
+        download_name=os.path.basename(file_path),
+        as_attachment=False
+    )
+
+    # Add caching headers to improve performance
+    response.headers['Accept-Ranges'] = 'bytes'
+    response.headers['Cache-Control'] = 'public, max-age=31536000'
+
+    return response
 
 
 # ─── iPod API ────────────────────────────────────────────────────────
