@@ -167,7 +167,7 @@
             <!-- Search Results View -->
             <div id="search-view" class="content-view hidden">
                 <div id="search-empty-state" class="search-empty">
-                    <p>Type in the search box to find music and podcasts</p>
+                    <p>Type in the search box to find music and podcasts</small>
                 </div>
                 <div id="search-results" class="hidden">
                     <!-- Filter Bar -->
@@ -255,7 +255,7 @@
 
             <!-- Empty State -->
             <div id="empty-state">
-                <p>Click Settings to configure your music and podcast libraries.</p>
+                <p>Click Settings to configure your music and podcast libraries.</small>
             </div>
         </main>
     </div>
@@ -291,6 +291,7 @@
 
                         <div class="settings-group">
                             <label>Music Library Path</label>
+                            <small class="settings-description">Location of your music files on disk. Scan to import albums into the library.</small>
                             <div class="path-input-row">
                                 <input type="text" id="music-path-input" placeholder="/path/to/music" />
                             </div>
@@ -302,6 +303,7 @@
 
                         <div class="settings-group">
                             <label>Podcast Library Path</label>
+                            <small class="settings-description">Location of your podcast files on disk. Scan to import episodes into the library.</small>
                             <div class="path-input-row">
                                 <input type="text" id="podcast-path-input" placeholder="/path/to/podcasts" />
                             </div>
@@ -313,6 +315,7 @@
 
                         <div class="settings-group">
                             <label>Export Destination</label>
+                            <small class="settings-description">Path to your mounted iPod. Refresh to detect connected iPods automatically.</small>
                             <div class="path-input-row">
                                 <input type="text" id="export-path-input" placeholder="./export" />
                             </div>
@@ -347,6 +350,7 @@
                                 <option value="dark">Dark</option>
                                 <option value="auto">Auto (System)</option>
                             </select>
+                            <small class="settings-description">Choose between light, dark, or automatic theme based on your system settings.</small>
                         </div>
 
                         <div class="settings-group">
@@ -361,21 +365,31 @@
                                 <option value="cyan">Cyan</option>
                                 <option value="pink">Pink</option>
                             </select>
+                            <small class="settings-description">Customize the highlight color used throughout the interface.</small>
                         </div>
 
                         <div class="settings-group checkbox-group">
-                            <input type="checkbox" id="colorful-albums" />
-                            <label for="colorful-albums">Colorful albums</label>
+                            <label for="colorful-albums">
+                                <input type="checkbox" id="colorful-albums" />
+                                <span>Colorful albums</span>
+                                <small>Extract colors from album artwork to tint the background when viewing album details.</small>
+                            </label>
                         </div>
 
                         <div class="settings-group checkbox-group">
-                            <input type="checkbox" id="mini-player" />
-                            <label for="mini-player">Mini player mode</label>
+                            <label for="mini-player">
+                                <input type="checkbox" id="mini-player" />
+                                <span>Mini player mode</span>
+                                <small>Compact player controls that stick to the bottom of the screen for easier access.</small>
+                            </label>
                         </div>
 
                         <div class="settings-group checkbox-group">
-                            <input type="checkbox" id="compact-disc-view" />
-                            <label for="compact-disc-view">Compact disc view (multi-disc albums)</label>
+                            <label for="compact-disc-view">
+                                <input type="checkbox" id="compact-disc-view" />
+                                <span>Compact disc view (multi-disc albums)</span>
+                                <small>When checked, all album details use consistent height. When unchecked, show all tracks from Disc 1 with a preview of Disc 2.</small>
+                            </label>
                         </div>
 
                         <!-- Themes Actions -->
@@ -390,18 +404,27 @@
                         <h2>Music</h2>
 
                         <div class="settings-group checkbox-group">
-                            <input type="checkbox" id="show-format-tags" />
-                            <label for="show-format-tags">Show format tags (MP3, FLAC, etc.)</label>
+                            <label for="show-format-tags">
+                                <input type="checkbox" id="show-format-tags" />
+                                <span>Show format tags (MP3, FLAC, etc.)</span>
+                                <small>Display audio format badges on songs and albums in the library.</small>
+                            </label>
                         </div>
 
                         <div class="settings-group checkbox-group">
-                            <input type="checkbox" id="allow-files-without-metadata" />
-                            <label for="allow-files-without-metadata">Allow songs without metadata</label>
+                            <label for="allow-files-without-metadata">
+                                <input type="checkbox" id="allow-files-without-metadata" />
+                                <span>Allow songs without metadata</span>
+                                <small>Include audio files that are missing title, artist, or album information.</small>
+                            </label>
                         </div>
 
                         <div class="settings-group checkbox-group">
-                            <input type="checkbox" id="transcode-flac-to-ipod" checked />
-                            <label for="transcode-flac-to-ipod">Transcode FLAC files when syncing to iPod</label>
+                            <label for="transcode-flac-to-ipod">
+                                <input type="checkbox" id="transcode-flac-to-ipod" checked />
+                                <span>Transcode FLAC files when syncing to iPod</span>
+                                <small>Convert FLAC files to a format compatible with your iPod during sync.</small>
+                            </label>
                         </div>
 
                         <div class="settings-group" id="transcode-format-group" style="margin-left: 30px;">
@@ -427,7 +450,7 @@
     <div id="path-dialog" class="dialog-overlay hidden">
         <div class="dialog">
             <h3>Set Music Library Path</h3>
-            <p>Enter the full path to your music folder:</p>
+            <p>Enter the full path to your music folder:</small>
             <input type="text" id="path-input" placeholder="/Users/you/Music" />
             <div class="dialog-actions">
                 <button id="path-cancel" class="btn">Cancel</button>
@@ -452,7 +475,7 @@
     <div id="m3u-dialog" class="dialog-overlay hidden">
         <div class="dialog dialog-wide">
             <h3>Import M3U Playlist</h3>
-            <p>Enter the path to your .m3u or .m3u8 file:</p>
+            <p>Enter the path to your .m3u or .m3u8 file:</small>
             <input type="text" id="m3u-path-input" placeholder="/path/to/playlist.m3u" />
             <div id="m3u-results" class="hidden">
                 <div id="m3u-stats"></div>
@@ -517,8 +540,8 @@
         <div class="dialog dialog-wide">
             <h3>Upload Music</h3>
             <div id="upload-dropzone">
-                <p>Drag audio files here or click to browse</p>
-                <p class="upload-formats">Supported: MP3, M4A, AAC, FLAC, WAV</p>
+                <p>Drag audio files here or click to browse</small>
+                <p class="upload-formats">Supported: MP3, M4A, AAC, FLAC, WAV</small>
                 <input type="file" id="upload-file-input" multiple
                        accept=".mp3,.m4a,.aac,.flac,.wav,.mp4" hidden />
             </div>

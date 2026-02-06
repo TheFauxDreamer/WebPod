@@ -880,6 +880,29 @@ td > .format-tag {
     font-weight: 500;
 }
 
+.settings-description,
+small.settings-description {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-top: 6px;
+    margin-bottom: 12px;
+}
+
+/* Description after label (before input) - less top margin */
+.settings-group label + .settings-description,
+.settings-group label + small.settings-description {
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+/* Description after select dropdown */
+select + .settings-description,
+select + small.settings-description {
+    margin-top: 6px;
+}
+
 .path-input-row {
     display: flex;
     gap: 8px;
@@ -907,21 +930,38 @@ td > .format-tag {
 }
 
 .checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: block;
+}
+
+.checkbox-group label {
+    display: block;
+    cursor: pointer;
+    user-select: none;
 }
 
 .checkbox-group input[type="checkbox"] {
     width: 16px;
     height: 16px;
     cursor: pointer;
-    margin: 0;
+    margin: 0 8px 0 0;
+    vertical-align: top;
+    margin-top: 2px;
 }
 
-.checkbox-group label {
-    cursor: pointer;
-    user-select: none;
+.checkbox-group span {
+    display: inline;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-bright);
+}
+
+.checkbox-group small {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-top: 4px;
+    margin-left: 24px;  /* Align with label text, accounting for checkbox width + gap */
 }
 
 /* ─── Settings Dialog (macOS Style) ─────────────── */
@@ -1025,11 +1065,11 @@ td > .format-tag {
 }
 
 .settings-category .settings-group {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .settings-category .settings-group:last-of-type {
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 }
 
 /* Actions Bar */
