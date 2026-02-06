@@ -1804,11 +1804,13 @@ select + small.settings-description {
     100% { transform: translateX(-50%); }
 }
 
+/* PLZ FIX
 .player-text:hover #player-title,
 .player-text:hover #player-artist {
     animation: none;
     display: inline-block;
 }
+*/
 
 /* Apply marquee when text overflows (requires JS to detect) */
 #player-title.scrolling,
