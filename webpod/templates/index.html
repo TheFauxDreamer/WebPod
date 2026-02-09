@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebPod - iPod Manager</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
 </head>
+
 <body>
     <!-- Status Bar -->
     <header id="status-bar">
@@ -15,7 +18,9 @@
         </div>
         <div class="status-center">
             <div id="progress-container" class="hidden">
-                <div id="progress-bar"><div id="progress-fill"></div></div>
+                <div id="progress-bar">
+                    <div id="progress-fill"></div>
+                </div>
                 <span id="progress-text"></span>
             </div>
         </div>
@@ -78,7 +83,8 @@
             <!-- iPod Info -->
             <div class="sidebar-section ipod-info-section">
                 <div class="ipod-device-info">
-                    <img id="ipod-mode-device-img" class="ipod-device-img" src="/static/img/ipod/unknown.svg" alt="iPod">
+                    <img id="ipod-mode-device-img" class="ipod-device-img" src="/static/img/ipod/unknown.svg"
+                        alt="iPod">
                     <div class="ipod-device-text">
                         <div class="ipod-device-name-row">
                             <span id="ipod-mode-name" class="ipod-device-name">iPod</span>
@@ -448,7 +454,8 @@
 
                         <div class="settings-group">
                             <label>Music Library Path</label>
-                            <small class="settings-description">Location of your music files on disk. Scan to import albums into the library.</small>
+                            <small class="settings-description">Location of your music files on disk. Scan to import
+                                albums into the library.</small>
                             <div class="path-input-row">
                                 <input type="text" id="music-path-input" placeholder="/path/to/music" />
                             </div>
@@ -460,7 +467,8 @@
 
                         <div class="settings-group">
                             <label>Podcast Library Path</label>
-                            <small class="settings-description">Location of your podcast files on disk. Scan to import episodes into the library.</small>
+                            <small class="settings-description">Location of your podcast files on disk. Scan to import
+                                episodes into the library.</small>
                             <div class="path-input-row">
                                 <input type="text" id="podcast-path-input" placeholder="/path/to/podcasts" />
                             </div>
@@ -472,7 +480,8 @@
 
                         <div class="settings-group">
                             <label>Video Library Path</label>
-                            <small class="settings-description">Location of video files (.m4v, .mov). Requires a video-capable iPod.</small>
+                            <small class="settings-description">Location of video files (.m4v, .mov). Requires a
+                                video-capable iPod.</small>
                             <div class="path-input-row">
                                 <input type="text" id="video-path-input" placeholder="/path/to/videos" />
                             </div>
@@ -484,12 +493,14 @@
 
                         <div class="settings-group">
                             <label>Export Destination</label>
-                            <small class="settings-description">Path to your mounted iPod. Refresh to detect connected iPods automatically.</small>
+                            <small class="settings-description">Path to your mounted iPod. Refresh to detect connected
+                                iPods automatically.</small>
                             <div class="path-input-row">
                                 <input type="text" id="export-path-input" placeholder="./export" />
                             </div>
                             <div class="settings-group-actions">
-                                <button id="export-btn" class="btn btn-small" disabled>Export All Music from iPod</button>
+                                <button id="export-btn" class="btn btn-small" disabled>Export All Music from
+                                    iPod</button>
                                 <span id="export-status" class="scan-status"></span>
                             </div>
                         </div>
@@ -519,7 +530,8 @@
                                 <option value="dark">Dark</option>
                                 <option value="auto">Auto (System)</option>
                             </select>
-                            <small class="settings-description">Choose between light, dark, or automatic theme based on your system settings.</small>
+                            <small class="settings-description">Choose between light, dark, or automatic theme based on
+                                your system settings.</small>
                         </div>
 
                         <div class="settings-group">
@@ -534,14 +546,16 @@
                                 <option value="cyan">Cyan</option>
                                 <option value="pink">Pink</option>
                             </select>
-                            <small class="settings-description">Customize the highlight color used throughout the interface.</small>
+                            <small class="settings-description">Customize the highlight color used throughout the
+                                interface.</small>
                         </div>
 
                         <div class="settings-group checkbox-group">
                             <label for="colorful-albums">
                                 <input type="checkbox" id="colorful-albums" />
                                 <span>Colorful albums</span>
-                                <small>Extract colors from album artwork to tint the background when viewing album details.</small>
+                                <small>Extract colors from album artwork to tint the background when viewing album
+                                    details.</small>
                             </label>
                         </div>
 
@@ -549,7 +563,8 @@
                             <label for="mini-player">
                                 <input type="checkbox" id="mini-player" />
                                 <span>Mini player mode</span>
-                                <small>Compact player controls that stick to the bottom of the screen for easier access.</small>
+                                <small>Compact player controls that stick to the bottom of the screen for easier
+                                    access.</small>
                             </label>
                         </div>
 
@@ -557,7 +572,8 @@
                             <label for="compact-disc-view">
                                 <input type="checkbox" id="compact-disc-view" />
                                 <span>Compact disc view (multi-disc albums)</span>
-                                <small>When checked, all album details use consistent height. When unchecked, show all tracks from Disc 1 with a preview of Disc 2.</small>
+                                <small>When checked, all album details use consistent height. When unchecked, show all
+                                    tracks from Disc 1 with a preview of Disc 2.</small>
                             </label>
                         </div>
 
@@ -645,7 +661,7 @@
         <div class="dialog">
             <h3>Set Music Library Path</h3>
             <p>Enter the full path to your music folder:</small>
-            <input type="text" id="path-input" placeholder="/Users/you/Music" />
+                <input type="text" id="path-input" placeholder="/Users/you/Music" />
             <div class="dialog-actions">
                 <button id="path-cancel" class="btn">Cancel</button>
                 <button id="path-confirm" class="btn btn-primary">Set Path</button>
@@ -670,7 +686,7 @@
         <div class="dialog dialog-wide">
             <h3>Import M3U Playlist</h3>
             <p>Enter the path to your .m3u or .m3u8 file:</small>
-            <input type="text" id="m3u-path-input" placeholder="/path/to/playlist.m3u" />
+                <input type="text" id="m3u-path-input" placeholder="/path/to/playlist.m3u" />
             <div id="m3u-results" class="hidden">
                 <div id="m3u-stats"></div>
                 <div id="m3u-tracks-list"></div>
@@ -736,8 +752,7 @@
             <div id="upload-dropzone">
                 <p>Drag audio files here or click to browse</small>
                 <p class="upload-formats">Supported: MP3, M4A, AAC, FLAC, WAV</small>
-                <input type="file" id="upload-file-input" multiple
-                       accept=".mp3,.m4a,.aac,.flac,.wav,.mp4" hidden />
+                    <input type="file" id="upload-file-input" multiple accept=".mp3,.m4a,.aac,.flac,.wav,.mp4" hidden />
             </div>
             <div id="upload-file-list" class="hidden"></div>
             <div id="upload-progress-area" class="hidden">
@@ -795,4 +810,5 @@
     <script src="/static/js/videos.js"></script>
     <script src="/static/js/upload.js"></script>
 </body>
+
 </html>
