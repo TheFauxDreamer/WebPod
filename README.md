@@ -17,7 +17,7 @@ I have a lot of music and multiple computers. I don't want duplicate libraries t
 --------------------------------------------------------------------------
 
 ## Features
-None of the "iPod" centric features have not been tested.
+None of the "iPod" centric features have been tested.
 
 ### Core Functionality
 - **iTunes-Free iPod Syncing** - Manage and sync your music library to classic iPods without requiring iTunes
