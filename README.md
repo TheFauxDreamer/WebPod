@@ -12,7 +12,7 @@ Manage your iPod's music library through a simple web interface.
 
 I really just miss the vibe of iTunes 11/12. The album interface was just so pretty.
 
-And I really don't want to manage 2 different iTunes libraries, one for my modern devices and one for my iPod. I decided against that when I signed up for Apple Music in 2020/21.
+I have a lot of music and multiple computers. I don't want duplicate libraries taking up space. This way I can save my music on my NAS, and install this on my computers to sync up-to-date libraries at any time from any computer at home.
 
 ## Quick Start
 
