@@ -81,6 +81,8 @@ Go to [Releases](../../releases) and download the file for your system:
 
 ### 3. Run WebPod
 
+Double click the run.py to start or,
+
 Open a terminal/command prompt in the extracted folder and run:
 
 ```
