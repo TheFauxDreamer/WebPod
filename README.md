@@ -12,7 +12,50 @@ Manage your iPod's music library through a simple web interface.
 
 I really just miss the vibe of iTunes 11/12. The album interface was just so pretty.
 
-And I really don't want to manage 2 different iTunes libraries, one for my modern devices and one for my iPod. I decided against that when I signed up for Apple Music in 2020/21.
+I have a lot of music and multiple computers. I don't want duplicate libraries taking up space. This way I can save my music on my NAS, and install this on my computers to sync up-to-date libraries at any time from any computer at home.
+
+--------------------------------------------------------------------------
+
+## Features
+None of the "iPod" centric features have been tested.
+
+### Core Functionality
+- **iTunes-Free iPod Syncing** - Manage and sync your music library to classic iPods without requiring iTunes
+- **Web-Based Interface** - Access your music library through a browser with a Python backend
+- **Automatic Library Scanning** - Automatically searches for music files when settings are saved
+
+### Music Playback
+- **Browser-Based Music Player** - Play songs directly in the browser by double-clicking
+- **Mini Player Mode** - Optional compact player controls for a streamlined interface
+- **Responsive Player Design** - Song names scroll when overflowing the player width
+
+### Library Management
+- **Multi-Format Support** - Compatible with M4A, MP3, WAV, FLAC/ALAC, and video files
+- **Format Conversion** - Automatically convert FLAC files to ALAC or MP3 formats
+- **DRM Flag Handling** - Fixed M4A playback issues caused by DRM flags
+- **Metadata Filtering** - Option to include or exclude songs without metadata (with separate podcast handling)
+- **Advanced Search** - Search by format and other criteria with "Show All" functionality
+- **Export Capability** - Extract and export songs from your iPod back to your computer
+
+### User Interface
+- **iTunes 11-Inspired Album View** - Colorful, nostalgic album grid layout reminiscent of classic iTunes
+- **Compact & Expanded Views** - Toggle between compact album view or expanded view showing more songs per album
+- **Light & Dark Themes** - Choose between light and dark color schemes
+- **Colorful Mode** - Accent colors for albums similar to iTunes 11's aesthetic
+- **Customizable Accent Colors** - Personalize the interface with your preferred accent color
+
+### iPod Management
+- **Redesigned iPod Section** - Streamlined interface for managing connected iPods
+- **iPod Icon Support** - Visual iPod model identification (framework in place)
+- **Remote Upload** - Upload and add music to iPods from non-host devices through the web interface
+
+### Settings & Customization
+- **Organized Settings Panel** - Redesigned, grouped settings for easier navigation
+- **Setting Descriptions** - Helpful explanations for each configuration option
+- **Notification Controls** - Option to disable toast notifications
+- **Improved Save Functionality** - Enhanced settings save behavior
+
+---------------------------------------------------------------------------
 
 ## Quick Start
 
@@ -37,6 +80,8 @@ Go to [Releases](../../releases) and download the file for your system:
 **Linux:** Double-click the file, or run `tar -xzf libgpod-*.tar.gz`
 
 ### 3. Run WebPod
+
+Double click the run.py to start or,
 
 Open a terminal/command prompt in the extracted folder and run:
 
