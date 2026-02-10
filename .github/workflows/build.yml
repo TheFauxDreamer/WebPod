@@ -287,7 +287,7 @@ jobs:
 
   release:
     needs: [build, build-windows]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') && always()
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -302,8 +302,22 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+        continue-on-error: true
+
+      - name: Check for artifacts
+        id: check_artifacts
+        run: |
+          if [ -d "artifacts" ] && [ -n "$(find artifacts -name '*.tar.gz' -type f)" ]; then
+            echo "has_artifacts=true" >> $GITHUB_OUTPUT
+            echo "Found artifacts:"
+            find artifacts -name '*.tar.gz' -type f
+          else
+            echo "has_artifacts=false" >> $GITHUB_OUTPUT
+            echo "No artifacts found"
+          fi
 
       - name: Create GitHub Release
+        if: steps.check_artifacts.outputs.has_artifacts == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -337,12 +351,29 @@ jobs:
           See the [README](../../blob/master/README.md) for installation instructions.
 
           **Downloads:**
-          - Windows: `libgpod-windows-x86_64-py3.12.tar.gz`
-          - macOS Apple Silicon: `libgpod-macos-arm64-py3.12.tar.gz`
-          - macOS Intel: `libgpod-macos-x86_64-py3.12.tar.gz`
-          - Linux (Ubuntu 24.04): `libgpod-linux-x86_64-py3.12.tar.gz`
-          - Linux (Ubuntu 22.04): `libgpod-linux-x86_64-py3.10.tar.gz`
           NOTES_EOF
+
+          # List available artifacts
+          echo "" >> release_notes.md
+          for file in $(find artifacts -name '*.tar.gz' -type f | sort); then
+            filename=$(basename "$file")
+            case "$filename" in
+              *windows*) platform="Windows" ;;
+              *macos-arm64*) platform="macOS Apple Silicon" ;;
+              *macos-x86_64*) platform="macOS Intel" ;;
+              *ubuntu-24*|*linux*py3.12*) platform="Linux (Ubuntu 24.04)" ;;
+              *ubuntu-22*|*linux*py3.10*) platform="Linux (Ubuntu 22.04)" ;;
+              *) platform="Other" ;;
+            esac
+            echo "- $platform: \`$filename\`" >> release_notes.md
+          done
+
+          # Check for any failed builds
+          echo "" >> release_notes.md
+          if [ $(find artifacts -name '*.tar.gz' -type f | wc -l) -lt 5 ]; then
+            echo "" >> release_notes.md
+            echo "**Note:** Some builds failed and are not available in this release." >> release_notes.md
+          fi
 
           # Collect all tarballs and create release
           FILES=$(find artifacts -name '*.tar.gz' -type f)
@@ -350,3 +381,9 @@ jobs:
             --title "WebPod $TAG" \
             --notes-file release_notes.md \
             $FILES
+
+      - name: Release failed - no artifacts
+        if: steps.check_artifacts.outputs.has_artifacts == 'false'
+        run: |
+          echo "::error::All builds failed - no artifacts to release"
+          exit 1
