@@ -355,7 +355,7 @@ jobs:
 
           # List available artifacts
           echo "" >> release_notes.md
-          for file in $(find artifacts -name '*.tar.gz' -type f | sort); then
+          for file in $(find artifacts -name '*.tar.gz' -type f | sort); do
             filename=$(basename "$file")
             case "$filename" in
               *windows*) platform="Windows" ;;
