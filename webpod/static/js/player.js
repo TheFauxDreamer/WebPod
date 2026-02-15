@@ -145,6 +145,9 @@ var Player = {
 
         // Highlight the playing track in the DOM
         Player.highlightPlaying();
+
+        // Update document title
+        Player.updateDocumentTitle(track);
     },
 
     togglePlay: function() {
@@ -186,6 +189,8 @@ var Player = {
             // End of queue - reset play button
             Player.isPlaying = false;
             document.getElementById('player-play').innerHTML = '&#9654;';
+            // Reset document title
+            document.title = 'WebPod - iPod Manager';
         }
     },
 
@@ -261,6 +266,19 @@ var Player = {
                 element.setAttribute('data-text', element.textContent);
             }
         });
+    },
+
+    /**
+     * Update the document title with currently playing track info
+     */
+    updateDocumentTitle: function(track) {
+        if (track && (track.title || track.artist)) {
+            var title = track.title || 'Unknown';
+            var artist = track.artist || 'Unknown Artist';
+            document.title = 'WebPod | ' + title + ' - ' + artist;
+        } else {
+            document.title = 'WebPod - iPod Manager';
+        }
     }
 };
 
