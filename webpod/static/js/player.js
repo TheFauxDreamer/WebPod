@@ -66,6 +66,20 @@ var Player = {
                 }
             }
         });
+
+        // Media keys: play/pause, next, previous
+        navigator.mediaSession.setActionHandler('play', function() {
+            Player.audio.play();
+        });
+        navigator.mediaSession.setActionHandler('pause', function() {
+            Player.audio.pause();
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', function() {
+            Player.prev();
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', function() {
+            Player.next();
+        });
     },
 
     /**
@@ -148,6 +162,9 @@ var Player = {
 
         // Update document title
         Player.updateDocumentTitle(track);
+
+        // Update media session metadata
+        Player.updateMediaSessionMetadata(track);
     },
 
     togglePlay: function() {
@@ -278,6 +295,32 @@ var Player = {
             document.title = 'WebPod | ' + title + ' - ' + artist;
         } else {
             document.title = 'WebPod - iPod Manager';
+        }
+    },
+
+    /**
+     * Update media session metadata for system media controls
+     */
+    updateMediaSessionMetadata: function(track) {
+        if ('mediaSession' in navigator) {
+            var metadata = {
+                title: track.title || 'Unknown',
+                artist: track.artist || 'Unknown Artist',
+                album: track.album || ''
+            };
+
+            // Add artwork if available
+            if (track.artwork_hash) {
+                metadata.artwork = [
+                    {
+                        src: '/api/artwork/' + track.artwork_hash,
+                        sizes: '512x512',
+                        type: 'image/jpeg'
+                    }
+                ];
+            }
+
+            navigator.mediaSession.metadata = new MediaMetadata(metadata);
         }
     }
 };
