@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebPod - iPod Manager</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/theme-aqua.css">
     <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
 </head>
 
@@ -542,7 +543,7 @@
                     <div class="settings-category hidden" data-category="appearance">
                         <h2>Appearance</h2>
 
-                        <div class="settings-group">
+                        <div class="settings-group" id="theme-group">
                             <label>Theme</label>
                             <select id="theme-select">
                                 <option value="light">Light</option>
@@ -554,6 +555,15 @@
                         </div>
 
                         <div class="settings-group">
+                            <label>Theme Style</label>
+                            <select id="theme-style-select">
+                                <option value="modern">Modern (iTunes 11 inspired)</option>
+                                <option value="aqua">Aqua (Classic Mac OS X)</option>
+                            </select>
+                            <small class="settings-description">Choose the visual style of the interface. Aqua brings the classic glossy Mac OS X look with gradients and shadows.</small>
+                        </div>
+
+                        <div class="settings-group" id="accent-group">
                             <label>Accent Color</label>
                             <select id="accent-color-select">
                                 <option value="blue">Blue (Default)</option>

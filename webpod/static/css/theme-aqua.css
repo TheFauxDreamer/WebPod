@@ -1,0 +1,617 @@
+/* WebPod - Aqua Theme (Classic Mac OS X inspired) */
+/* This file overrides the default theme when aqua theme is selected */
+
+:root[data-theme-style="aqua"],
+[data-theme="light"][data-theme-style="aqua"],
+[data-theme="dark"][data-theme-style="aqua"] {
+    /* Aqua Color Palette */
+    --aqua-blue: #3e7fc1;
+    --aqua-blue-light: #5c9fdb;
+    --aqua-blue-dark: #2a5f9e;
+    --aqua-stripe: rgba(255, 255, 255, 0.5);
+    --aqua-stripe-dark: rgba(0, 0, 0, 0.05);
+    
+    /* Light theme colors for Aqua */
+    --bg-primary: #e8e8e8;
+    --bg-secondary: #f0f0f0;
+    --bg-sidebar: #d9d9d9;
+    --bg-hover: #c8d5e3;
+    --bg-selected: #3e7fc1;
+    --bg-card: #ffffff;
+    --text-primary: #000000;
+    --text-secondary: #5a5a5a;
+    --text-bright: #000000;
+    --border-color: #a0a0a0;
+    
+    /* Aqua-specific */
+    --accent: #3e7fc1;
+    --accent-hover: #2a5f9e;
+    --accent-rgb: 62, 127, 193;
+    
+    /* Glossy effects */
+    --gradient-glossy: linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.6) 0%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        rgba(255, 255, 255, 0) 51%, 
+        rgba(0, 0, 0, 0.05) 100%);
+    
+    --gradient-button: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(0, 0, 0, 0.05) 51%,
+        rgba(0, 0, 0, 0.1) 100%);
+    
+    /* Inputs */
+    --input-bg: #ffffff;
+    --panel-bg: #f0f0f0;
+    --hover-bg: #e0e0e0;
+    --button-bg: #e8e8e8;
+    
+    /* Shadows */
+    --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --shadow-medium: 0 2px 6px rgba(0, 0, 0, 0.15);
+    --shadow-heavy: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    
+    /* Border radius - more rounded like Aqua */
+    --radius: 8px;
+    --radius-large: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* BODY & LAYOUT */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+body[data-theme-style="aqua"] {
+    background: linear-gradient(180deg, #c8d5e3 0%, #a8b8c8 100%);
+}
+
+/* Status Bar - Aqua style with gradient */
+[data-theme-style="aqua"] #status-bar {
+    background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
+    border-bottom: 1px solid #999999;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+[data-theme-style="aqua"] #status-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* SIDEBAR */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] #sidebar,
+[data-theme-style="aqua"] #sidebar-ipod {
+    background: linear-gradient(90deg, #d4d4d4 0%, #e0e0e0 100%);
+    border-right: 1px solid #a0a0a0;
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.5);
+}
+
+[data-theme-style="aqua"] .sidebar-section {
+    border-bottom: 1px solid #b8b8b8;
+    position: relative;
+}
+
+[data-theme-style="aqua"] .sidebar-section::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme-style="aqua"] .sidebar-section h3 {
+    color: #4a4a4a;
+    font-weight: 600;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* BUTTONS - Aqua style with glossy gradient */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] .btn {
+    background: linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%);
+    border: 1px solid #a0a0a0;
+    border-radius: 6px;
+    color: #000000;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    position: relative;
+}
+
+[data-theme-style="aqua"] .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 50%;
+    background: linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.4) 0%, 
+        rgba(255, 255, 255, 0) 100%);
+    border-radius: 5px 5px 0 0;
+    pointer-events: none;
+}
+
+[data-theme-style="aqua"] .btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
+    border-color: #888888;
+}
+
+[data-theme-style="aqua"] .btn:active:not(:disabled) {
+    background: linear-gradient(180deg, #d0d0d0 0%, #e0e0e0 100%);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme-style="aqua"] .btn:disabled {
+    opacity: 0.5;
+    box-shadow: none;
+}
+
+/* Primary Button - Blue Aqua style */
+[data-theme-style="aqua"] .btn-primary {
+    background: linear-gradient(180deg, #5c9fdb 0%, #3e7fc1 50%, #2a5f9e 100%);
+    border: 1px solid #2a5f9e;
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+[data-theme-style="aqua"] .btn-primary::before {
+    background: linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.3) 0%, 
+        rgba(255, 255, 255, 0) 100%);
+}
+
+[data-theme-style="aqua"] .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #6aaee5 0%, #4a8fd0 50%, #3570ad 100%);
+}
+
+[data-theme-style="aqua"] .btn-primary:active:not(:disabled) {
+    background: linear-gradient(180deg, #2a5f9e 0%, #3e7fc1 50%, #5c9fdb 100%);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Tab Buttons */
+[data-theme-style="aqua"] .btn-tab {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    box-shadow: none;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme-style="aqua"] .btn-tab::before {
+    display: none;
+}
+
+[data-theme-style="aqua"] .btn-tab.active {
+    border-bottom-color: #3e7fc1;
+    color: #3e7fc1;
+    font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* TOOLBAR */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] #toolbar,
+[data-theme-style="aqua"] #toolbar-ipod {
+    background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
+    border-bottom: 1px solid #a0a0a0;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset,
+                0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* INPUTS & SELECTS */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] input[type="text"],
+[data-theme-style="aqua"] input[type="search"],
+[data-theme-style="aqua"] select,
+[data-theme-style="aqua"] textarea {
+    background: #ffffff;
+    border: 1px solid #a0a0a0;
+    border-radius: 4px;
+    color: #000000;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme-style="aqua"] input[type="text"]:focus,
+[data-theme-style="aqua"] input[type="search"]:focus,
+[data-theme-style="aqua"] select:focus,
+[data-theme-style="aqua"] textarea:focus {
+    border-color: #3e7fc1;
+    outline: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1),
+                0 0 0 3px rgba(62, 127, 193, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* CONTENT AREA */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] #content {
+    background: #ffffff;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* TABLES - Striped Aqua style */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] table {
+    background: #ffffff;
+}
+
+[data-theme-style="aqua"] thead {
+    background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
+    border-bottom: 1px solid #a0a0a0;
+}
+
+[data-theme-style="aqua"] thead th {
+    color: #000000;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    border-right: 1px solid #c0c0c0;
+    position: relative;
+}
+
+[data-theme-style="aqua"] thead th::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -1px;
+    bottom: 0;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme-style="aqua"] tbody tr {
+    border-bottom: 1px solid #e8e8e8;
+}
+
+[data-theme-style="aqua"] tbody tr:nth-child(even) {
+    background: linear-gradient(90deg, 
+        rgba(62, 127, 193, 0.03) 0%, 
+        rgba(62, 127, 193, 0.06) 50%, 
+        rgba(62, 127, 193, 0.03) 100%);
+}
+
+[data-theme-style="aqua"] tbody tr:hover {
+    background: linear-gradient(90deg, 
+        rgba(62, 127, 193, 0.1) 0%, 
+        rgba(62, 127, 193, 0.15) 50%, 
+        rgba(62, 127, 193, 0.1) 100%);
+}
+
+[data-theme-style="aqua"] tbody tr.selected,
+[data-theme-style="aqua"] tbody tr.playing {
+    background: linear-gradient(90deg, 
+        rgba(62, 127, 193, 0.8) 0%, 
+        rgba(62, 127, 193, 0.9) 50%, 
+        rgba(62, 127, 193, 0.8) 100%);
+    color: #ffffff;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* ALBUM GRID */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] .album-card {
+    background: #ffffff;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+[data-theme-style="aqua"] .album-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    border-color: #3e7fc1;
+}
+
+[data-theme-style="aqua"] .album-artwork {
+    border-radius: 6px 6px 0 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* SCROLLBARS - Aqua style */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] ::-webkit-scrollbar {
+    width: 15px;
+    height: 15px;
+}
+
+[data-theme-style="aqua"] ::-webkit-scrollbar-track {
+    background: linear-gradient(90deg, #e0e0e0 0%, #f0f0f0 100%);
+    border-left: 1px solid #b0b0b0;
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.5);
+}
+
+[data-theme-style="aqua"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #c0c0c0 0%, #d8d8d8 50%, #c0c0c0 100%);
+    border: 1px solid #a0a0a0;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+[data-theme-style="aqua"] ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(90deg, #b0b0b0 0%, #c8c8c8 50%, #b0b0b0 100%);
+}
+
+[data-theme-style="aqua"] ::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(90deg, #a0a0a0 0%, #b8b8b8 50%, #a0a0a0 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* DIALOGS - Aqua window style */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] .dialog {
+    background: #f0f0f0;
+    border: 1px solid #a0a0a0;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme-style="aqua"] .dialog h3 {
+    background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
+    color: #000000;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    padding: 12px 20px;
+    margin: -20px -20px 20px -20px;
+    border-radius: 11px 11px 0 0;
+    border-bottom: 1px solid #a0a0a0;
+    font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* SETTINGS DIALOG */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] .dialog-settings {
+    border-radius: 12px;
+    overflow: visible;
+}
+
+[data-theme-style="aqua"] .settings-container {
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+[data-theme-style="aqua"] .settings-sidebar {
+    background: linear-gradient(90deg, #d4d4d4 0%, #e0e0e0 100%);
+    border-right: 1px solid #a0a0a0;
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.5);
+    padding: 28px 0 24px 0;
+}
+
+[data-theme-style="aqua"] .settings-sidebar h3 {
+    color: #000000;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    padding-left: 40px;
+    padding-right: 20px;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: 0 0 20px 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+[data-theme-style="aqua"] .settings-nav li {
+    color: #000000;
+    padding: 12px 20px;
+    margin: 0;
+}
+
+[data-theme-style="aqua"] .settings-nav li:hover {
+    background: rgba(62, 127, 193, 0.15);
+}
+
+[data-theme-style="aqua"] .settings-nav li.active {
+    background: linear-gradient(90deg, 
+        rgba(62, 127, 193, 0.8) 0%, 
+        rgba(62, 127, 193, 0.9) 50%, 
+        rgba(62, 127, 193, 0.8) 100%);
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+[data-theme-style="aqua"] .settings-content {
+    background: #f8f8f8;
+}
+
+[data-theme-style="aqua"] .settings-category h2 {
+    color: #000000;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    border-bottom-color: #c0c0c0;
+}
+
+[data-theme-style="aqua"] .settings-actions {
+    background: #f8f8f8;
+    border-top: 1px solid #c0c0c0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* PLAYER BAR - Aqua style */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] #player-bar {
+    background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
+    border-top: 1px solid #a0a0a0;
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+[data-theme-style="aqua"] .player-btn {
+    background: linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%);
+    border: 1px solid #a0a0a0;
+    border-radius: 50%;
+    color: #000000;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+[data-theme-style="aqua"] .player-btn:hover {
+    background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
+}
+
+[data-theme-style="aqua"] .player-btn:active {
+    background: linear-gradient(180deg, #d0d0d0 0%, #e0e0e0 100%);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme-style="aqua"] #player-seekbar {
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid #a0a0a0;
+    border-radius: 10px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme-style="aqua"] #player-seekbar-fill {
+    background: linear-gradient(90deg, #5c9fdb 0%, #3e7fc1 100%);
+    border-radius: 9px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+[data-theme-style="aqua"] #player-title,
+[data-theme-style="aqua"] #player-artist {
+    color: #000000;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+[data-theme-style="aqua"] #player-current-time,
+[data-theme-style="aqua"] #player-total-time {
+    color: #4a4a4a;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Volume slider */
+[data-theme-style="aqua"] input[type="range"] {
+    -webkit-appearance: none;
+    background: transparent;
+}
+
+[data-theme-style="aqua"] input[type="range"]::-webkit-slider-track {
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid #a0a0a0;
+    border-radius: 10px;
+    height: 6px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme-style="aqua"] input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #f8f8f8 0%, #d0d0d0 100%);
+    border: 1px solid #a0a0a0;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    margin-top: -5px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* PROGRESS BARS */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] #progress-bar,
+[data-theme-style="aqua"] .progress-bar-container {
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid #a0a0a0;
+    border-radius: 10px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme-style="aqua"] #progress-fill,
+[data-theme-style="aqua"] .progress-bar {
+    background: linear-gradient(90deg, #5c9fdb 0%, #3e7fc1 100%);
+    border-radius: 9px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* PLAYLISTS */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] #playlists-list li:hover {
+    background: rgba(62, 127, 193, 0.15);
+}
+
+[data-theme-style="aqua"] #playlists-list li.selected {
+    background: linear-gradient(90deg, 
+        rgba(62, 127, 193, 0.8) 0%, 
+        rgba(62, 127, 193, 0.9) 50%, 
+        rgba(62, 127, 193, 0.8) 100%);
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* CHECKBOXES - Aqua style */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] input[type="checkbox"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #a0a0a0;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    position: relative;
+}
+
+[data-theme-style="aqua"] input[type="checkbox"]:checked {
+    background: linear-gradient(180deg, #5c9fdb 0%, #3e7fc1 100%);
+    border-color: #2a5f9e;
+}
+
+[data-theme-style="aqua"] input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 2px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* TOAST NOTIFICATIONS */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme-style="aqua"] #toast {
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
