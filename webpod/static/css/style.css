@@ -1030,9 +1030,46 @@ select + small.settings-description {
 }
 
 .settings-nav .nav-icon {
-    font-size: 18px;
     width: 20px;
-    text-align: center;
+    height: 20px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-nav .nav-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+    transition: color 0.2s ease;
+}
+
+/* Color-code each settings category */
+.settings-nav li[data-category="setup"] .nav-icon {
+    color: #ffb74d; /* Orange - setup/folder */
+}
+
+.settings-nav li[data-category="appearance"] .nav-icon {
+    color: #ba68c8; /* Purple - paint palette */
+}
+
+.settings-nav li[data-category="library"] .nav-icon {
+    color: #64b5f6; /* Blue - book/library */
+}
+
+.settings-nav li[data-category="sync"] .nav-icon {
+    color: #81c784; /* Green - sync/refresh */
+}
+
+/* Active state - use accent color */
+.settings-nav li.active .nav-icon {
+    color: var(--accent);
+}
+
+/* Hover state - brighten */
+.settings-nav li:hover .nav-icon {
+    filter: brightness(1.2);
 }
 
 .settings-nav .nav-label {
