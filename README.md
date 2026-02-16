@@ -43,6 +43,7 @@ None of the "iPod" centric features have been tested.
 - **Light & Dark Themes** - Choose between light and dark color schemes
 - **Colorful Mode** - Accent colors for albums similar to iTunes 11's aesthetic
 - **Customizable Accent Colors** - Personalize the interface with your preferred accent color
+- **macOS Aqua UI Theme** - Special UI inspired by the old Aqua interface
 
 ### iPod Management
 - **Redesigned iPod Section** - Streamlined interface for managing connected iPods
