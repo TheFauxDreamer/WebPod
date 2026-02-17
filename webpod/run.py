@@ -81,17 +81,25 @@ def check_libgpod_bindings():
 
         # Show what gpod directories exist on disk
         found_any = False
+        found_versions = []
         search_base = os.path.join(parent_dir, 'mingw64', 'lib') if sys.platform == 'win32' \
             else os.path.join(parent_dir, 'usr', 'local', 'lib')
         if os.path.isdir(search_base):
-            for entry in os.listdir(search_base):
+            for entry in sorted(os.listdir(search_base)):
                 if entry.startswith('python'):
                     gpod_dir = os.path.join(search_base, entry, 'site-packages', 'gpod')
                     if os.path.isdir(gpod_dir):
                         print(f"  Found gpod bindings built for {entry} at: {gpod_dir}")
                         found_any = True
+                        found_versions.append(entry.replace('python', ''))
         if not found_any:
             print(f"  No gpod bindings found in: {search_base}")
+
+        running = f"{sys.version_info.major}.{sys.version_info.minor}"
+        if found_any and running not in found_versions:
+            built_for = ', '.join(found_versions)
+            print(f"  Hint: Install Python {built_for} to match the bundled bindings,")
+            print(f"        or download a build matching your Python {running}.")
 
         print("  iPod features will be unavailable.")
         print()
