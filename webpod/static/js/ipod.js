@@ -806,43 +806,43 @@ var IPodMode = {
     getDeviceImagePath: function(generation) {
         var basePath = '/static/img/ipod/';
         var imageMap = {
-            // Full-size iPods (all mapped to classic-x.svg)
-            'First Generation': 'classic-1.svg',
-            'Second Generation': 'classic-2.svg',
-            'Third Generation': 'classic-3.svg',
-            'Fourth Generation': 'classic-4.svg',
-            'Photo': 'classic-4.svg',
-            'Video (First Generation)': 'classic-5.svg',
-            'Video (Second Generation)': 'classic-5.svg',
-            'Classic (First Generation)': 'classic-6.svg',
-            'Classic (Second Generation)': 'classic-6.svg',
-            'Classic (Third Generation)': 'classic-7.svg',
+            // Full-size iPods (all mapped to classic-x.png)
+            'First Generation': 'classic-1.png',
+            'Second Generation': 'classic-2.png',
+            'Third Generation': 'classic-3.png',
+            'Fourth Generation': 'classic-4.png',
+            'Photo': 'classic-4.png',
+            'Video (First Generation)': 'classic-5.png',
+            'Video (Second Generation)': 'classic-5.png',
+            'Classic (First Generation)': 'classic-6.png',
+            'Classic (Second Generation)': 'classic-6.png',
+            'Classic (Third Generation)': 'classic-7.png',
             // Mini
-            'Mini (First Generation)': 'mini-1.svg',
-            'Mini (Second Generation)': 'mini-2.svg',
+            'Mini (First Generation)': 'mini-1.png',
+            'Mini (Second Generation)': 'mini-2.png',
             // Shuffle
-            'Shuffle (First Generation)': 'shuffle-1.svg',
-            'Shuffle (Second Generation)': 'shuffle-2.svg',
-            'Shuffle (Third Generation)': 'shuffle-3.svg',
-            'Shuffle (Fourth Generation)': 'shuffle-4.svg',
+            'Shuffle (First Generation)': 'shuffle-1.png',
+            'Shuffle (Second Generation)': 'shuffle-2.png',
+            'Shuffle (Third Generation)': 'shuffle-3.png',
+            'Shuffle (Fourth Generation)': 'shuffle-4.png',
             // Nano
-            'Nano (First Generation)': 'nano-1.svg',
-            'Nano (Second Generation)': 'nano-2.svg',
-            'Nano (Third Generation)': 'nano-3.svg',
-            'Nano (Fourth Generation)': 'nano-4.svg',
-            'Nano (Fifth Generation)': 'nano-5.svg',
-            'Nano (Sixth Generation)': 'nano-6.svg',
-            'Nano (Seventh Generation)': 'nano-7.svg',
+            'Nano (First Generation)': 'nano-1.png',
+            'Nano (Second Generation)': 'nano-2.png',
+            'Nano (Third Generation)': 'nano-3.png',
+            'Nano (Fourth Generation)': 'nano-4.png',
+            'Nano (Fifth Generation)': 'nano-5.png',
+            'Nano (Sixth Generation)': 'nano-6.png',
+            'Nano (Seventh Generation)': 'nano-7.png',
             // Touch
-            'Touch (First Generation)': 'touch-1.svg',
-            'Touch (Second Generation)': 'touch-2.svg',
-            'Touch (Third Generation)': 'touch-3.svg',
-            'Touch (Fourth Generation)': 'touch-4.svg',
-            'Touch (Fifth Generation)': 'touch-5.svg',
-            'Touch (Sixth Generation)': 'touch-6.svg',
-            'Touch (Seventh Generation)': 'touch-7.svg'
+            'Touch (First Generation)': 'touch-1.png',
+            'Touch (Second Generation)': 'touch-2.png',
+            'Touch (Third Generation)': 'touch-3.png',
+            'Touch (Fourth Generation)': 'touch-4.png',
+            'Touch (Fifth Generation)': 'touch-5.png',
+            'Touch (Sixth Generation)': 'touch-6.png',
+            'Touch (Seventh Generation)': 'touch-7.png'
         };
-        return basePath + (imageMap[generation] || 'unknown.svg');
+        return basePath + (imageMap[generation] || 'unknown.png');
     },
 
     /**

@@ -1004,6 +1004,7 @@ var Library = {
      */
     initScan: function() {
         var scanBtn = document.getElementById('scan-btn');
+        if (!scanBtn) return;
         scanBtn.addEventListener('click', function() {
             scanBtn.disabled = true;
             scanBtn.textContent = 'Scanning...';

@@ -23,12 +23,16 @@ def setup_libgpod_paths():
     lib_paths = []
     python_paths = []
 
+    # Build version search list: current Python version down to 3.10
+    current_minor = sys.version_info[1]
+    pyversions = [f'3.{v}' for v in range(current_minor, 9, -1)]
+
     if sys.platform == 'win32':
         # Windows: mingw64/bin and mingw64/lib/python3.X/site-packages
         mingw_bin = os.path.join(parent_dir, 'mingw64', 'bin')
         if os.path.isdir(mingw_bin):
             lib_paths.append(mingw_bin)
-        for pyver in ['3.12', '3.11', '3.10']:
+        for pyver in pyversions:
             sp = os.path.join(parent_dir, 'mingw64', 'lib', f'python{pyver}', 'site-packages')
             if os.path.isdir(sp):
                 python_paths.append(sp)
@@ -38,7 +42,7 @@ def setup_libgpod_paths():
         usr_lib = os.path.join(parent_dir, 'usr', 'local', 'lib')
         if os.path.isdir(usr_lib):
             lib_paths.append(usr_lib)
-        for pyver in ['3.12', '3.11', '3.10']:
+        for pyver in pyversions:
             sp = os.path.join(usr_lib, f'python{pyver}', 'site-packages')
             if os.path.isdir(sp):
                 python_paths.append(sp)
@@ -60,6 +64,37 @@ def setup_libgpod_paths():
     # Add Python site-packages to import path
     if python_paths:
         sys.path[0:0] = python_paths
+
+
+def check_libgpod_bindings():
+    """Check if libgpod Python bindings can be loaded and print diagnostics if not."""
+    try:
+        import gpod
+        return
+    except ImportError as e:
+        import os
+        print(f"Warning: libgpod Python bindings not available ({e})")
+        print(f"  Running Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(script_dir)
+
+        # Show what gpod directories exist on disk
+        found_any = False
+        search_base = os.path.join(parent_dir, 'mingw64', 'lib') if sys.platform == 'win32' \
+            else os.path.join(parent_dir, 'usr', 'local', 'lib')
+        if os.path.isdir(search_base):
+            for entry in os.listdir(search_base):
+                if entry.startswith('python'):
+                    gpod_dir = os.path.join(search_base, entry, 'site-packages', 'gpod')
+                    if os.path.isdir(gpod_dir):
+                        print(f"  Found gpod bindings built for {entry} at: {gpod_dir}")
+                        found_any = True
+        if not found_any:
+            print(f"  No gpod bindings found in: {search_base}")
+
+        print("  iPod features will be unavailable.")
+        print()
 
 
 def ensure_dependencies():
@@ -104,6 +139,7 @@ def open_browser(port):
 def main():
     check_python_version()
     setup_libgpod_paths()
+    check_libgpod_bindings()
     ensure_dependencies()
 
     # Add parent directory to path so webpod package can be imported
