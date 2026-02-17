@@ -26,6 +26,18 @@ jobs:
           - os: macos-15
             python-version: '3.12'
             artifact-name: libgpod-macos-arm64-py3.12
+          - os: ubuntu-24.04
+            python-version: '3.13'
+            artifact-name: libgpod-linux-x86_64-py3.13
+          - os: ubuntu-24.04
+            python-version: '3.14'
+            artifact-name: libgpod-linux-x86_64-py3.14
+          - os: macos-15-intel
+            python-version: '3.14'
+            artifact-name: libgpod-macos-x86_64-py3.14
+          - os: macos-15
+            python-version: '3.14'
+            artifact-name: libgpod-macos-arm64-py3.14
 
     runs-on: ${{ matrix.os }}
 
@@ -172,7 +184,7 @@ jobs:
         include:
           - msystem: MINGW64
             arch: x86_64
-            artifact-name: libgpod-windows-x86_64-py3.12
+            artifact-name: libgpod-windows-x86_64-py3.14
 
     runs-on: windows-latest
 
@@ -207,6 +219,9 @@ jobs:
             intltool
             gettext-devel
             make
+
+      - name: Show MSYS2 Python version
+        run: python --version
 
       - name: Create libplist pkg-config compatibility symlink
         run: |
@@ -361,8 +376,10 @@ jobs:
               *windows*) platform="Windows" ;;
               *macos-arm64*) platform="macOS Apple Silicon" ;;
               *macos-x86_64*) platform="macOS Intel" ;;
-              *ubuntu-24*|*linux*py3.12*) platform="Linux (Ubuntu 24.04)" ;;
-              *ubuntu-22*|*linux*py3.10*) platform="Linux (Ubuntu 22.04)" ;;
+              *linux*py3.14*) platform="Linux (Python 3.14)" ;;
+              *linux*py3.13*) platform="Linux (Python 3.13)" ;;
+              *linux*py3.12*) platform="Linux (Python 3.12)" ;;
+              *linux*py3.10*) platform="Linux (Python 3.10)" ;;
               *) platform="Other" ;;
             esac
             echo "- $platform: \`$filename\`" >> release_notes.md
@@ -370,7 +387,7 @@ jobs:
 
           # Check for any failed builds
           echo "" >> release_notes.md
-          if [ $(find artifacts -name '*.tar.gz' -type f | wc -l) -lt 5 ]; then
+          if [ $(find artifacts -name '*.tar.gz' -type f | wc -l) -lt 9 ]; then
             echo "" >> release_notes.md
             echo "**Note:** Some builds failed and are not available in this release." >> release_notes.md
           fi
