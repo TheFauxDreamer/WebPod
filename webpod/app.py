@@ -89,6 +89,9 @@ def get_settings():
     # Toast notification settings
     disable_toasts = models.get_setting('disable_toasts') == '1'  # Default to False (toasts enabled)
 
+    # Quick upload setting
+    quick_upload = models.get_setting('quick_upload') == '1'  # Default to False
+
     # Video settings
     video_path = models.get_setting('video_library_path')
 
@@ -112,7 +115,8 @@ def get_settings():
         'allow_files_without_metadata': allow_no_metadata,
         'transcode_flac_to_ipod': transcode_flac_enabled,
         'transcode_flac_format': transcode_format,
-        'disable_toasts': disable_toasts
+        'disable_toasts': disable_toasts,
+        'quick_upload': quick_upload
     })
 
 
@@ -181,6 +185,9 @@ def save_settings():
 
     if 'disable_toasts' in data:
         models.set_setting('disable_toasts', '1' if data['disable_toasts'] else '0')
+
+    if 'quick_upload' in data:
+        models.set_setting('quick_upload', '1' if data['quick_upload'] else '0')
 
     return jsonify({"success": True})
 

@@ -48,6 +48,14 @@
                     </div>
                 </div>
                 <button id="upload-btn" class="btn btn-small btn-block">Upload Music</button>
+                <div id="sidebar-dropzone" class="sidebar-dropzone hidden">
+                    <p>Drop music here</p>
+                    <input type="file" id="sidebar-file-input" multiple accept=".mp3,.m4a,.aac,.flac,.wav,.mp4" hidden />
+                    <div id="sidebar-upload-progress" class="hidden">
+                        <div class="sidebar-progress-bar"><div id="sidebar-progress-fill"></div></div>
+                        <span id="sidebar-progress-text"></span>
+                    </div>
+                </div>
             </div>
 
             <!-- iPod Section -->
@@ -638,6 +646,14 @@
                                 <input type="checkbox" id="disable-toasts" />
                                 <span>Disable notifications</span>
                                 <small>Turn off toast notifications for sync progress, errors, and other events.</small>
+                            </label>
+                        </div>
+
+                        <div class="settings-group checkbox-group">
+                            <label for="quick-upload">
+                                <input type="checkbox" id="quick-upload" />
+                                <span>Quick Upload</span>
+                                <small>Replace the Upload Music button with a drag & drop zone in the sidebar. Auto-rescans library after upload.</small>
                             </label>
                         </div>
 

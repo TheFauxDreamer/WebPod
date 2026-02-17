@@ -1664,6 +1664,58 @@ select + small.settings-description {
     font-size: 11px;
 }
 
+/* Sidebar Quick Upload Dropzone */
+.sidebar-dropzone {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius);
+    padding: 16px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.sidebar-dropzone:hover {
+    border-color: var(--accent);
+}
+
+.sidebar-dropzone.drag-over {
+    border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.08);
+}
+
+.sidebar-dropzone p {
+    margin: 4px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.sidebar-dropzone.uploading {
+    cursor: default;
+    pointer-events: none;
+}
+
+.sidebar-progress-bar {
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    margin-top: 8px;
+}
+
+#sidebar-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.2s;
+    border-radius: 2px;
+}
+
+#sidebar-progress-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 4px;
+}
+
 #upload-file-list {
     max-height: 200px;
     overflow-y: auto;

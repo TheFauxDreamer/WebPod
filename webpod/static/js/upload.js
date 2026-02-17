@@ -5,6 +5,7 @@
 var Upload = {
     files: [],
     uploading: false,
+    quickUploading: false,
 
     init: function() {
         var btn = document.getElementById('upload-btn');
@@ -46,6 +47,34 @@ var Upload = {
         // Close on overlay click
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay && !Upload.uploading) Upload.closeDialog();
+        });
+
+        // Sidebar dropzone setup
+        var sidebarDropzone = document.getElementById('sidebar-dropzone');
+        var sidebarFileInput = document.getElementById('sidebar-file-input');
+
+        sidebarDropzone.addEventListener('click', function() {
+            if (!Upload.quickUploading) sidebarFileInput.click();
+        });
+
+        sidebarFileInput.addEventListener('change', function() {
+            if (sidebarFileInput.files.length > 0) {
+                Upload.quickUpload(sidebarFileInput.files);
+                sidebarFileInput.value = '';
+            }
+        });
+
+        sidebarDropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            sidebarDropzone.classList.add('drag-over');
+        });
+        sidebarDropzone.addEventListener('dragleave', function() {
+            sidebarDropzone.classList.remove('drag-over');
+        });
+        sidebarDropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            sidebarDropzone.classList.remove('drag-over');
+            if (!Upload.quickUploading) Upload.quickUpload(e.dataTransfer.files);
         });
     },
 
@@ -254,6 +283,123 @@ var Upload = {
             }
             WebPod.toast(results.added.length + ' track' +
                 (results.added.length !== 1 ? 's' : '') + ' uploaded', 'success');
+        }
+    },
+
+    applyQuickUpload: function(enabled) {
+        var btn = document.getElementById('upload-btn');
+        var dropzone = document.getElementById('sidebar-dropzone');
+        if (enabled) {
+            btn.classList.add('hidden');
+            dropzone.classList.remove('hidden');
+        } else {
+            btn.classList.remove('hidden');
+            dropzone.classList.add('hidden');
+        }
+    },
+
+    quickUpload: function(fileList) {
+        if (Upload.quickUploading) return;
+
+        // Validate files
+        var validExts = ['.mp3', '.m4a', '.aac', '.mp4', '.flac', '.wav'];
+        var files = [];
+        for (var i = 0; i < fileList.length; i++) {
+            var ext = '.' + fileList[i].name.split('.').pop().toLowerCase();
+            if (validExts.indexOf(ext) !== -1) files.push(fileList[i]);
+        }
+        if (files.length === 0) return;
+
+        Upload.quickUploading = true;
+        var dropzone = document.getElementById('sidebar-dropzone');
+        var progressArea = document.getElementById('sidebar-upload-progress');
+        var progressFill = document.getElementById('sidebar-progress-fill');
+        var progressText = document.getElementById('sidebar-progress-text');
+        var dropText = dropzone.querySelector('p');
+
+        dropzone.classList.add('uploading');
+        dropText.classList.add('hidden');
+        progressArea.classList.remove('hidden');
+        progressFill.style.width = '0%';
+
+        var totalFiles = files.length;
+        var allResults = { added: [], duplicates: [], errors: [] };
+        var fileIndex = 0;
+
+        function uploadNext() {
+            if (fileIndex >= totalFiles) {
+                Upload.quickUploadComplete(allResults);
+                return;
+            }
+
+            var file = files[fileIndex];
+            var formData = new FormData();
+            formData.append('files', file);
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    var filePct = Math.round((e.loaded / e.total) * 100);
+                    var overallPct = Math.round(((fileIndex + filePct / 100) / totalFiles) * 100);
+                    progressFill.style.width = overallPct + '%';
+                    progressText.textContent = (fileIndex + 1) + '/' + totalFiles + ': ' + file.name;
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        var result = JSON.parse(xhr.responseText);
+                        allResults.added = allResults.added.concat(result.added || []);
+                        allResults.duplicates = allResults.duplicates.concat(result.duplicates || []);
+                        allResults.errors = allResults.errors.concat(result.errors || []);
+                    } catch (e) {
+                        allResults.errors.push({ filename: file.name, reason: 'Invalid server response' });
+                    }
+                } else {
+                    allResults.errors.push({ filename: file.name, reason: 'Upload failed (status ' + xhr.status + ')' });
+                }
+                fileIndex++;
+                uploadNext();
+            };
+
+            xhr.onerror = function() {
+                allResults.errors.push({ filename: file.name, reason: 'Network error' });
+                fileIndex++;
+                uploadNext();
+            };
+
+            xhr.open('POST', '/api/library/upload');
+            xhr.send(formData);
+        }
+
+        uploadNext();
+    },
+
+    quickUploadComplete: function(results) {
+        Upload.quickUploading = false;
+        var dropzone = document.getElementById('sidebar-dropzone');
+        var progressArea = document.getElementById('sidebar-upload-progress');
+        var progressFill = document.getElementById('sidebar-progress-fill');
+        var dropText = dropzone.querySelector('p');
+
+        dropzone.classList.remove('uploading');
+        progressArea.classList.add('hidden');
+        progressFill.style.width = '0%';
+        dropText.classList.remove('hidden');
+
+        if (results.added.length > 0) {
+            WebPod.toast(results.added.length + ' track' +
+                (results.added.length !== 1 ? 's' : '') + ' uploaded', 'success');
+            // Auto-rescan library to pick up new music
+            WebPod.api('/api/library/scan', { method: 'POST' }).then(function() {
+                WebPod.toast('Library re-scan started', 'info');
+            }).catch(function() {});
+        }
+        if (results.errors.length > 0) {
+            WebPod.toast(results.errors.length + ' file' +
+                (results.errors.length !== 1 ? 's' : '') + ' failed to upload', 'error');
         }
     },
 

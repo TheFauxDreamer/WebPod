@@ -845,6 +845,8 @@ var WebPod = {
             WebPod.applyMiniPlayer();
             WebPod.compactDiscView = data.compact_disc_view === '1';
             WebPod.disableToasts = data.disable_toasts === true;
+            WebPod.quickUpload = data.quick_upload === true;
+            Upload.applyQuickUpload(WebPod.quickUpload);
         }).catch(function () {
             // Settings not available
         });
@@ -869,6 +871,7 @@ var WebPod = {
         var miniPlayerCheckbox = document.getElementById('mini-player');
         var compactDiscViewCheckbox = document.getElementById('compact-disc-view');
         var disableToastsCheckbox = document.getElementById('disable-toasts');
+        var quickUploadCheckbox = document.getElementById('quick-upload');
         var allowNoMetadataCheckbox = document.getElementById('allow-files-without-metadata');
         var transcodeFlacCheckbox = document.getElementById('transcode-flac-to-ipod');
         var transcodeFlacFormat = document.getElementById('transcode-flac-format');
@@ -932,6 +935,7 @@ var WebPod = {
             miniPlayerCheckbox.checked = WebPod.miniPlayer === true;
             compactDiscViewCheckbox.checked = WebPod.compactDiscView === true;
             disableToastsCheckbox.checked = WebPod.disableToasts === true;  // Default to false (toasts enabled)
+            quickUploadCheckbox.checked = WebPod.quickUpload === true;  // Default to false
             allowNoMetadataCheckbox.checked = WebPod.allowFilesWithoutMetadata === true;  // Default to false (unchecked)
             transcodeFlacCheckbox.checked = WebPod.transcodeFlacToIpod !== false;  // Default to true (enabled)
             transcodeFlacFormat.value = WebPod.transcodeFlacFormat || 'alac';  // Default to ALAC
@@ -1076,6 +1080,7 @@ var WebPod = {
                 compact_disc_view: compactDiscViewCheckbox.checked,
                 disable_toasts: disableToastsCheckbox.checked,
                 // Music
+                quick_upload: quickUploadCheckbox.checked,
                 show_format_tags: formatTagsCheckbox.checked,
                 allow_files_without_metadata: allowNoMetadataCheckbox.checked,
                 transcode_flac_to_ipod: transcodeFlacCheckbox.checked,
@@ -1100,6 +1105,8 @@ var WebPod = {
                 WebPod.applyMiniPlayer();
                 WebPod.compactDiscView = allSettings.compact_disc_view;
                 WebPod.disableToasts = allSettings.disable_toasts;
+                WebPod.quickUpload = allSettings.quick_upload;
+                Upload.applyQuickUpload(WebPod.quickUpload);
                 WebPod.showFormatTags = allSettings.show_format_tags;
                 WebPod.allowFilesWithoutMetadata = allSettings.allow_files_without_metadata;
                 WebPod.transcodeFlacToIpod = allSettings.transcode_flac_to_ipod;
