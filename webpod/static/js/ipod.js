@@ -744,7 +744,7 @@ var IPodMode = {
             var genTag = document.getElementById('ipod-mode-gen-tag');
 
             if (modelImg) {
-                var imgPath = IPodMode.getDeviceImagePath(data.generation_string);
+                var imgPath = IPodMode.getDeviceImagePath(data.generation_string, data.name);
                 modelImg.src = imgPath;
             }
             if (genTag && data.generation_string && data.generation_string !== 'Unknown') {
@@ -760,42 +760,36 @@ var IPodMode = {
      * Convert generation string to short tag format (e.g., "Classic 5G", "Nano 3G")
      */
     getGenerationTag: function(generation) {
+        // Maps libgpod generation strings to short display tags
         var tagMap = {
-            // Original iPods (1st-4th gen are just "iPod")
-            'First Generation': 'Classic 1G',
-            'Second Generation': 'Classic 2G',
-            'Third Generation': 'Classic 3G',
-            'Fourth Generation': 'Classic 4G',
+            'Regular (1st Gen.)': 'Classic 1G',
+            'Regular (2nd Gen.)': 'Classic 2G',
+            'Regular (3rd Gen.)': 'Classic 3G',
+            'Regular (4th Gen.)': 'Classic 4G',
             'Photo': 'Photo',
-            'Video (First Generation)': 'Classic 5G',
-            'Video (Second Generation)': 'Classic 5.5G',
-            'Classic (First Generation)': 'Classic 6G',
-            'Classic (Second Generation)': 'Classic 6.5G',
-            'Classic (Third Generation)': 'Classic 7G',
+            'Video (1st Gen.)': 'Classic 5G',
+            'Video (2nd Gen.)': 'Classic 5.5G',
+            'Classic': 'Classic 6G',
             // Mini
-            'Mini (First Generation)': 'Mini 1G',
-            'Mini (Second Generation)': 'Mini 2G',
+            'Mini (1st Gen.)': 'Mini 1G',
+            'Mini (2nd Gen.)': 'Mini 2G',
             // Shuffle
-            'Shuffle (First Generation)': 'Shuffle 1G',
-            'Shuffle (Second Generation)': 'Shuffle 2G',
-            'Shuffle (Third Generation)': 'Shuffle 3G',
-            'Shuffle (Fourth Generation)': 'Shuffle 4G',
+            'Shuffle (1st Gen.)': 'Shuffle 1G',
+            'Shuffle (2nd Gen.)': 'Shuffle 2G',
+            'Shuffle (3rd Gen.)': 'Shuffle 3G',
+            'Shuffle (4th Gen.)': 'Shuffle 4G',
             // Nano
-            'Nano (First Generation)': 'Nano 1G',
-            'Nano (Second Generation)': 'Nano 2G',
-            'Nano (Third Generation)': 'Nano 3G',
-            'Nano (Fourth Generation)': 'Nano 4G',
-            'Nano (Fifth Generation)': 'Nano 5G',
-            'Nano (Sixth Generation)': 'Nano 6G',
-            'Nano (Seventh Generation)': 'Nano 7G',
+            'Nano (1st Gen.)': 'Nano 1G',
+            'Nano (2nd Gen.)': 'Nano 2G',
+            'Nano Video (3rd Gen.)': 'Nano 3G',
+            'Nano Video (4th Gen.)': 'Nano 4G',
+            'Nano with camera (5th Gen.)': 'Nano 5G',
+            'Nano touch (6th Gen.)': 'Nano 6G',
             // Touch
-            'Touch (First Generation)': 'Touch 1G',
-            'Touch (Second Generation)': 'Touch 2G',
-            'Touch (Third Generation)': 'Touch 3G',
-            'Touch (Fourth Generation)': 'Touch 4G',
-            'Touch (Fifth Generation)': 'Touch 5G',
-            'Touch (Sixth Generation)': 'Touch 6G',
-            'Touch (Seventh Generation)': 'Touch 7G'
+            'Touch': 'Touch 1G',
+            'Touch (2nd Gen.)': 'Touch 2G',
+            'Touch (3rd Gen.)': 'Touch 3G',
+            'Touch (4th Gen.)': 'Touch 4G'
         };
         return tagMap[generation] || '';
     },
@@ -803,44 +797,45 @@ var IPodMode = {
     /**
      * Map generation string to image path
      */
-    getDeviceImagePath: function(generation) {
+    getDeviceImagePath: function(generation, name) {
         var basePath = '/static/img/ipod/';
+
+        // Special device-specific overrides
+        if (generation === 'Video (1st Gen.)' && name && name.indexOf('Ishtar') !== -1) {
+            return basePath + 'classic-5-clear.png';
+        }
+
+        // Maps libgpod generation strings to image filenames
         var imageMap = {
-            // Full-size iPods (all mapped to classic-x.png)
-            'First Generation': 'classic-1.png',
-            'Second Generation': 'classic-2.png',
-            'Third Generation': 'classic-3.png',
-            'Fourth Generation': 'classic-4.png',
-            'Photo': 'classic-4.png',
-            'Video (First Generation)': 'classic-5.png',
-            'Video (Second Generation)': 'classic-5.png',
-            'Classic (First Generation)': 'classic-6.png',
-            'Classic (Second Generation)': 'classic-6.png',
-            'Classic (Third Generation)': 'classic-7.png',
+            // Full-size iPods
+            'Regular (1st Gen.)': 'classic-1.png',
+            'Regular (2nd Gen.)': 'classic-2.png',
+            'Regular (3rd Gen.)': 'classic-3.png',
+            'Regular (4th Gen.)': 'classic-4.png',
+            'Photo': 'classic-4-photo.png',
+            'Video (1st Gen.)': 'classic-5.png',
+            'Video (2nd Gen.)': 'classic-5.png',
+            'Classic': 'classic-6.png',
             // Mini
-            'Mini (First Generation)': 'mini-1.png',
-            'Mini (Second Generation)': 'mini-2.png',
+            'Mini (1st Gen.)': 'mini-1.png',
+            'Mini (2nd Gen.)': 'mini-2.png',
             // Shuffle
-            'Shuffle (First Generation)': 'shuffle-1.png',
-            'Shuffle (Second Generation)': 'shuffle-2.png',
-            'Shuffle (Third Generation)': 'shuffle-3.png',
-            'Shuffle (Fourth Generation)': 'shuffle-4.png',
+            'Shuffle (1st Gen.)': 'shuffle-1.png',
+            'Shuffle (2nd Gen.)': 'shuffle-2.png',
+            'Shuffle (3rd Gen.)': 'shuffle-3.png',
+            'Shuffle (4th Gen.)': 'shuffle-4.png',
             // Nano
-            'Nano (First Generation)': 'nano-1.png',
-            'Nano (Second Generation)': 'nano-2.png',
-            'Nano (Third Generation)': 'nano-3.png',
-            'Nano (Fourth Generation)': 'nano-4.png',
-            'Nano (Fifth Generation)': 'nano-5.png',
-            'Nano (Sixth Generation)': 'nano-6.png',
-            'Nano (Seventh Generation)': 'nano-7.png',
+            'Nano (1st Gen.)': 'nano-1.png',
+            'Nano (2nd Gen.)': 'nano-2.png',
+            'Nano Video (3rd Gen.)': 'nano-3.png',
+            'Nano Video (4th Gen.)': 'nano-4.png',
+            'Nano with camera (5th Gen.)': 'nano-5.png',
+            'Nano touch (6th Gen.)': 'nano-6.png',
             // Touch
-            'Touch (First Generation)': 'touch-1.png',
-            'Touch (Second Generation)': 'touch-2.png',
-            'Touch (Third Generation)': 'touch-3.png',
-            'Touch (Fourth Generation)': 'touch-4.png',
-            'Touch (Fifth Generation)': 'touch-5.png',
-            'Touch (Sixth Generation)': 'touch-6.png',
-            'Touch (Seventh Generation)': 'touch-7.png'
+            'Touch': 'touch-1.png',
+            'Touch (2nd Gen.)': 'touch-2.png',
+            'Touch (3rd Gen.)': 'touch-3.png',
+            'Touch (4th Gen.)': 'touch-4.png'
         };
         return basePath + (imageMap[generation] || 'unknown.png');
     },

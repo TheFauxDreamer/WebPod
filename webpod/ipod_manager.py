@@ -149,8 +149,11 @@ class IPodManager:
         with self._lock:
             if not self.connected:
                 return {"connected": False}
-            # Extract name from mountpoint (last component of path)
-            name = os.path.basename(self._mountpoint.rstrip('/')) or 'iPod'
+            # Get iPod name from master playlist (the user-set name in iTunes)
+            try:
+                name = self._db.Master.name or 'iPod'
+            except Exception:
+                name = os.path.basename(self._mountpoint.rstrip('/')) or 'iPod'
             return {
                 "connected": True,
                 "mountpoint": self._mountpoint,
@@ -348,6 +351,12 @@ class IPodManager:
         with self._lock:
             self._require_connected()
 
+            # Get iPod name from master playlist
+            try:
+                ipod_name = self._db.Master.name or 'iPod'
+            except Exception:
+                ipod_name = 'iPod'
+
             try:
                 device = self._db._itdb.device
                 info = gpod.itdb_device_get_ipod_info(device)
@@ -366,6 +375,7 @@ class IPodManager:
                         'model_string': gpod.itdb_info_get_ipod_model_name_string(info.ipod_model),
                         'generation_string': gpod.itdb_info_get_ipod_generation_string(info.ipod_generation),
                         'supports_video': video_support,
+                        'name': ipod_name,
                     }
             except Exception:
                 pass
@@ -377,6 +387,7 @@ class IPodManager:
                 'model_string': 'Unknown iPod',
                 'generation_string': 'Unknown',
                 'supports_video': False,
+                'name': ipod_name,
             }
 
     def supports_video(self):
