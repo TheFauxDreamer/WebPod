@@ -48,6 +48,16 @@ def setup_libgpod_paths():
                 python_paths.append(sp)
                 break
 
+    # Fallback: recursively search for gpod module if not found at expected path
+    if not python_paths:
+        search_root = os.path.join(parent_dir, 'mingw64') if sys.platform == 'win32' \
+            else os.path.join(parent_dir, 'usr', 'local')
+        for dirpath, dirnames, filenames in os.walk(search_root):
+            if os.path.basename(dirpath) == 'gpod' and '__init__.py' in filenames:
+                # Found gpod package; its parent is the site-packages equivalent
+                python_paths.append(os.path.dirname(dirpath))
+                break
+
     # Set environment variables for native libraries
     if lib_paths:
         if sys.platform == 'darwin':

@@ -152,6 +152,30 @@ jobs:
       - name: Install to staging directory
         run: make install DESTDIR=$(pwd)/staging
 
+      - name: Normalize gpod module path
+        run: |
+          # Ensure gpod Python module is at the canonical path that run.py expects
+          PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+          TARGET="staging/usr/local/lib/python${PYVER}/site-packages"
+          GPOD_DIR=$(find staging -type d -name gpod -path '*/site-packages/*' 2>/dev/null | head -1)
+          if [ -z "$GPOD_DIR" ]; then
+            GPOD_DIR=$(find staging -type d -name gpod | head -1)
+          fi
+          if [ -z "$GPOD_DIR" ]; then
+            echo "::error::gpod module not found in staging directory"
+            exit 1
+          fi
+          echo "Found gpod at: $GPOD_DIR"
+          echo "Target: $TARGET/gpod"
+          if [ "$GPOD_DIR" != "$TARGET/gpod" ]; then
+            mkdir -p "$TARGET"
+            mv "$GPOD_DIR" "$TARGET/gpod"
+            echo "Moved gpod to canonical location"
+          else
+            echo "gpod already at canonical location"
+          fi
+          ls -la "$TARGET/gpod/"
+
       - name: Package artifacts
         run: |
           cp -r webpod staging/webpod
@@ -173,7 +197,7 @@ jobs:
           else
             export DYLD_LIBRARY_PATH=$(pwd)/staging/usr/local/lib:$DYLD_LIBRARY_PATH
           fi
-          PYTHONPATH=$(find staging -type d -name gpod | head -1 | xargs dirname)
+          PYTHONPATH="$(pwd)/staging/usr/local/lib/python${{ matrix.python-version }}/site-packages"
           export PYTHONPATH
           python -c "import gpod; print('gpod module loaded successfully')"
 
@@ -280,6 +304,30 @@ jobs:
       - name: Install to staging directory
         run: make install DESTDIR=$(pwd)/staging
 
+      - name: Normalize gpod module path
+        run: |
+          # Ensure gpod Python module is at the canonical path that run.py expects
+          PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+          TARGET="staging/mingw64/lib/python${PYVER}/site-packages"
+          GPOD_DIR=$(find staging -type d -name gpod -path '*/site-packages/*' 2>/dev/null | head -1)
+          if [ -z "$GPOD_DIR" ]; then
+            GPOD_DIR=$(find staging -type d -name gpod | head -1)
+          fi
+          if [ -z "$GPOD_DIR" ]; then
+            echo "::error::gpod module not found in staging directory"
+            exit 1
+          fi
+          echo "Found gpod at: $GPOD_DIR"
+          echo "Target: $TARGET/gpod"
+          if [ "$GPOD_DIR" != "$TARGET/gpod" ]; then
+            mkdir -p "$TARGET"
+            mv "$GPOD_DIR" "$TARGET/gpod"
+            echo "Moved gpod to canonical location"
+          else
+            echo "gpod already at canonical location"
+          fi
+          ls -la "$TARGET/gpod/"
+
       - name: Package artifacts
         run: |
           cp -r webpod staging/webpod
@@ -295,8 +343,9 @@ jobs:
 
       - name: Verify Python bindings
         run: |
+          PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
           export PATH="$(pwd)/staging/mingw64/bin:$PATH"
-          PYTHONPATH=$(find staging -type d -name gpod | head -1 | xargs dirname)
+          PYTHONPATH="$(pwd)/staging/mingw64/lib/python${PYVER}/site-packages"
           export PYTHONPATH
           python -c "import gpod; print('gpod module loaded successfully')"
 
