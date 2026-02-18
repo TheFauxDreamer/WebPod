@@ -157,14 +157,23 @@ jobs:
           # Ensure gpod Python module is at the canonical path that run.py expects
           PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
           TARGET="staging/usr/local/lib/python${PYVER}/site-packages"
-          GPOD_DIR=$(find staging -type d -name gpod -path '*/site-packages/*' 2>/dev/null | head -1)
+
+          # Look for a gpod directory that contains Python files (not C headers)
+          GPOD_DIR=""
+          for dir in $(find staging -type d -name gpod 2>/dev/null); do
+            if [ -f "$dir/ipod.py" ] || [ -f "$dir/__init__.py" ] || ls "$dir"/_gpod*.so 2>/dev/null | head -1 > /dev/null; then
+              GPOD_DIR="$dir"
+              break
+            fi
+          done
+
           if [ -z "$GPOD_DIR" ]; then
-            GPOD_DIR=$(find staging -type d -name gpod | head -1)
-          fi
-          if [ -z "$GPOD_DIR" ]; then
-            echo "::error::gpod module not found in staging directory"
+            echo "::error::gpod Python package not found in staging directory"
+            echo "Directories named 'gpod' found:"
+            find staging -type d -name gpod 2>/dev/null
             exit 1
           fi
+
           echo "Found gpod at: $GPOD_DIR"
           echo "Target: $TARGET/gpod"
           if [ "$GPOD_DIR" != "$TARGET/gpod" ]; then
@@ -199,7 +208,7 @@ jobs:
           fi
           PYTHONPATH="$(pwd)/staging/usr/local/lib/python${{ matrix.python-version }}/site-packages"
           export PYTHONPATH
-          python -c "import gpod; print('gpod module loaded successfully')"
+          python -c "import gpod; assert hasattr(gpod, 'Database'), 'Database class missing'; print('gpod module loaded successfully')"
 
   build-windows:
     strategy:
@@ -298,6 +307,20 @@ jobs:
           GMODULE_LIBS="$(pkg-config --libs gmodule-2.0)"
           sed -i "s|^LIBGPOD_LIBS = \\(.*\\)|LIBGPOD_LIBS = \\1 ${GMODULE_LIBS}|" src/Makefile
 
+      - name: Verify Python bindings will be built
+        run: |
+          # Check that configure enabled Python bindings
+          if grep -q '^#gpoddir' bindings/python/Makefile; then
+            echo "::error::Python bindings are DISABLED (HAVE_PYTHON=no)"
+            echo "Checking why..."
+            echo "Python: $(which python) ($(python --version))"
+            echo "Python prefix: $(python -c 'import sys; print(sys.prefix)')"
+            echo "Python includes: $(python -c 'import sysconfig; print(sysconfig.get_path(\"include\"))')"
+            ls -la "$(python -c 'import sysconfig; print(sysconfig.get_path("include"))')/" 2>/dev/null || echo "Include dir not found"
+            exit 1
+          fi
+          echo "Python bindings are enabled"
+
       - name: Build
         run: make -j$(nproc)
 
@@ -309,14 +332,32 @@ jobs:
           # Ensure gpod Python module is at the canonical path that run.py expects
           PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
           TARGET="staging/mingw64/lib/python${PYVER}/site-packages"
-          GPOD_DIR=$(find staging -type d -name gpod -path '*/site-packages/*' 2>/dev/null | head -1)
+
+          # Look for a gpod directory that contains Python files (not C headers)
+          GPOD_DIR=""
+          for dir in $(find staging -type d -name gpod 2>/dev/null); do
+            if [ -f "$dir/ipod.py" ] || [ -f "$dir/__init__.py" ] || ls "$dir"/_gpod*.{so,pyd,dll} 2>/dev/null | head -1 > /dev/null; then
+              GPOD_DIR="$dir"
+              break
+            fi
+          done
+
           if [ -z "$GPOD_DIR" ]; then
-            GPOD_DIR=$(find staging -type d -name gpod | head -1)
+            echo "::warning::No gpod Python package found via make install, assembling from source"
+            mkdir -p "$TARGET/gpod"
+            # Copy Python source files
+            cp bindings/python/__init__.py "$TARGET/gpod/"
+            cp bindings/python/ipod.py "$TARGET/gpod/"
+            cp bindings/python/gtkpod.py "$TARGET/gpod/"
+            # Copy SWIG-generated wrapper
+            [ -f bindings/python/gpod.py ] && cp bindings/python/gpod.py "$TARGET/gpod/"
+            # Copy compiled extension from libtool output
+            for ext in bindings/python/.libs/_gpod*; do
+              [ -f "$ext" ] && cp "$ext" "$TARGET/gpod/"
+            done
+            GPOD_DIR="$TARGET/gpod"
           fi
-          if [ -z "$GPOD_DIR" ]; then
-            echo "::error::gpod module not found in staging directory"
-            exit 1
-          fi
+
           echo "Found gpod at: $GPOD_DIR"
           echo "Target: $TARGET/gpod"
           if [ "$GPOD_DIR" != "$TARGET/gpod" ]; then
@@ -326,6 +367,13 @@ jobs:
           else
             echo "gpod already at canonical location"
           fi
+
+          # Ensure __init__.py exists
+          if [ ! -f "$TARGET/gpod/__init__.py" ]; then
+            echo "::warning::__init__.py missing, copying from source"
+            cp bindings/python/__init__.py "$TARGET/gpod/__init__.py"
+          fi
+
           ls -la "$TARGET/gpod/"
 
       - name: Package artifacts
@@ -347,7 +395,7 @@ jobs:
           export PATH="$(pwd)/staging/mingw64/bin:$PATH"
           PYTHONPATH="$(pwd)/staging/mingw64/lib/python${PYVER}/site-packages"
           export PYTHONPATH
-          python -c "import gpod; print('gpod module loaded successfully')"
+          python -c "import gpod; assert hasattr(gpod, 'Database'), 'Database class missing'; print('gpod module loaded successfully')"
 
   release:
     needs: [build, build-windows]

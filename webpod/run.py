@@ -53,7 +53,7 @@ def setup_libgpod_paths():
         search_root = os.path.join(parent_dir, 'mingw64') if sys.platform == 'win32' \
             else os.path.join(parent_dir, 'usr', 'local')
         for dirpath, dirnames, filenames in os.walk(search_root):
-            if os.path.basename(dirpath) == 'gpod' and '__init__.py' in filenames:
+            if os.path.basename(dirpath) == 'gpod' and ('__init__.py' in filenames or 'ipod.py' in filenames):
                 # Found gpod package; its parent is the site-packages equivalent
                 python_paths.append(os.path.dirname(dirpath))
                 break
@@ -74,6 +74,21 @@ def setup_libgpod_paths():
     # Add Python site-packages to import path
     if python_paths:
         sys.path[0:0] = python_paths
+
+    # Check gpod directory health and repair if needed
+    for sp in python_paths:
+        gpod_dir = os.path.join(sp, 'gpod')
+        init_file = os.path.join(gpod_dir, '__init__.py')
+        ipod_file = os.path.join(gpod_dir, 'ipod.py')
+        if os.path.isdir(gpod_dir) and not os.path.isfile(ipod_file):
+            print(f"Warning: gpod directory at {gpod_dir} does not contain Python files")
+            print(f"  Contents: {os.listdir(gpod_dir)}")
+            print(f"  The release may have been packaged incorrectly.")
+            print(f"  Try re-downloading or building from source.")
+        elif os.path.isdir(gpod_dir) and os.path.isfile(ipod_file) and not os.path.isfile(init_file):
+            print(f"Repairing missing gpod/__init__.py at {gpod_dir}")
+            with open(init_file, 'w') as f:
+                f.write('from .gpod import *\nfrom .ipod import *\n')
 
 
 def check_libgpod_bindings():
