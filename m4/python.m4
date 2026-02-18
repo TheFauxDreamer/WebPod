@@ -6,12 +6,18 @@ dnl function also defines PYTHON_INCLUDES
 AC_DEFUN([AM_CHECK_PYTHON_HEADERS],
 [AC_REQUIRE([AM_PATH_PYTHON])
 AC_MSG_CHECKING(for python development headers)
-dnl deduce PYTHON_INCLUDES
-py_prefix=`$PYTHON -c "import sys; print(sys.prefix)"`
-py_exec_prefix=`$PYTHON -c "import sys; print(sys.exec_prefix)"`
-PYTHON_INCLUDES="-I${py_prefix}/include/python${PYTHON_VERSION}"
-if test "$py_prefix" != "$py_exec_prefix"; then
-  PYTHON_INCLUDES="$PYTHON_INCLUDES -I${py_exec_prefix}/include/python${PYTHON_VERSION}"
+dnl Use sysconfig to get the correct include path (works with Python 3.2+)
+py_include=`$PYTHON -c "import sysconfig; print(sysconfig.get_path('include'))" 2>/dev/null`
+if test -n "$py_include" -a -d "$py_include"; then
+  PYTHON_INCLUDES="-I${py_include}"
+else
+  dnl Fallback: deduce from prefix (legacy method)
+  py_prefix=`$PYTHON -c "import sys; print(sys.prefix)"`
+  py_exec_prefix=`$PYTHON -c "import sys; print(sys.exec_prefix)"`
+  PYTHON_INCLUDES="-I${py_prefix}/include/python${PYTHON_VERSION}"
+  if test "$py_prefix" != "$py_exec_prefix"; then
+    PYTHON_INCLUDES="$PYTHON_INCLUDES -I${py_exec_prefix}/include/python${PYTHON_VERSION}"
+  fi
 fi
 AC_SUBST(PYTHON_INCLUDES)
 dnl check if the headers exist:
@@ -43,18 +49,17 @@ except ImportError:
 except:
         sys.exit(0)
 sys.exit(0)"], [prog="
-import sys, string, $1
+import sys, $1
 curverstr = $3
-# use method from AM_PYTHON_CHECK_VERSION
-minver = map(int, string.split('$2', '.'))
-length = len[(minver)]
+minver = list(map(int, '$2'.split('.')))
+length = len(minver)
 minver += [[0, 0, 0]]
 minverhex = 0
-for i in xrange(0, 4): minverhex = (minverhex << 8) + minver[[i]]
-curver = map(int, string.split(curverstr, '.')[[:length]])
+for i in range(0, 4): minverhex = (minverhex << 8) + minver[[i]]
+curver = list(map(int, curverstr.split('.')[[:length]]))
 curver += [[0, 0, 0]]
 curverhex = 0
-for i in xrange(0, 4): curverhex = (curverhex << 8) + curver[[i]]
+for i in range(0, 4): curverhex = (curverhex << 8) + curver[[i]]
 if (curverhex >= minverhex):
         sys.exit(0)
 else:

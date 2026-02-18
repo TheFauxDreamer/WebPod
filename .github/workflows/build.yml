@@ -141,6 +141,18 @@ jobs:
           GMODULE_LIBS="$(pkg-config --libs gmodule-2.0)"
           sed -i '' "s|^LIBGPOD_LIBS = \\(.*\\)|LIBGPOD_LIBS = \\1 ${GMODULE_LIBS}|" src/Makefile
 
+      - name: Verify Python bindings will be built
+        run: |
+          if grep -q '^#gpoddir' bindings/python/Makefile; then
+            echo "::error::Python bindings are DISABLED (HAVE_PYTHON=no)"
+            PYINC=$(python -c 'import sysconfig; print(sysconfig.get_path("include"))')
+            echo "Python includes dir: $PYINC"
+            ls "$PYINC/Python.h" 2>/dev/null || echo "Python.h not found"
+            grep -A3 'checking for python' config.log | tail -20 || true
+            exit 1
+          fi
+          echo "Python bindings are enabled"
+
       - name: Build
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -161,7 +173,7 @@ jobs:
           # Look for a gpod directory that contains Python files (not C headers)
           GPOD_DIR=""
           for dir in $(find staging -type d -name gpod 2>/dev/null); do
-            if [ -f "$dir/ipod.py" ] || [ -f "$dir/__init__.py" ] || ls "$dir"/_gpod*.so 2>/dev/null | head -1 > /dev/null; then
+            if [ -f "$dir/ipod.py" ] || [ -f "$dir/__init__.py" ]; then
               GPOD_DIR="$dir"
               break
             fi
@@ -171,6 +183,9 @@ jobs:
             echo "::error::gpod Python package not found in staging directory"
             echo "Directories named 'gpod' found:"
             find staging -type d -name gpod 2>/dev/null
+            for dir in $(find staging -type d -name gpod 2>/dev/null); do
+              echo "  $dir contents: $(ls $dir)"
+            done
             exit 1
           fi
 
@@ -315,8 +330,11 @@ jobs:
             echo "Checking why..."
             echo "Python: $(which python) ($(python --version))"
             echo "Python prefix: $(python -c 'import sys; print(sys.prefix)')"
-            echo "Python includes: $(python -c 'import sysconfig; print(sysconfig.get_path(\"include\"))')"
-            ls -la "$(python -c 'import sysconfig; print(sysconfig.get_path("include"))')/" 2>/dev/null || echo "Include dir not found"
+            PYINC=$(python -c 'import sysconfig; print(sysconfig.get_path("include"))')
+            echo "Python includes: $PYINC"
+            ls -la "$PYINC/" 2>/dev/null || echo "Include dir not found"
+            echo "Configure log Python section:"
+            grep -A5 -i 'python' config.log | tail -30 || true
             exit 1
           fi
           echo "Python bindings are enabled"
@@ -336,7 +354,7 @@ jobs:
           # Look for a gpod directory that contains Python files (not C headers)
           GPOD_DIR=""
           for dir in $(find staging -type d -name gpod 2>/dev/null); do
-            if [ -f "$dir/ipod.py" ] || [ -f "$dir/__init__.py" ] || ls "$dir"/_gpod*.{so,pyd,dll} 2>/dev/null | head -1 > /dev/null; then
+            if [ -f "$dir/ipod.py" ] || [ -f "$dir/__init__.py" ]; then
               GPOD_DIR="$dir"
               break
             fi
