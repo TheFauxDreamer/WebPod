@@ -310,6 +310,7 @@ jobs:
             --prefix=/mingw64 \
             --disable-more-warnings \
             --disable-gtk-doc \
+            --disable-dependency-tracking \
             --without-hal \
             --disable-udev \
             --without-libimobiledevice
