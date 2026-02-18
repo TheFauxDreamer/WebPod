@@ -8,7 +8,7 @@ classes and methods provided here.
 import gpod
 from mutagen.mp3 import MP3
 import mutagen.id3
-import gtkpod
+from . import gtkpod
 import os
 import locale
 import socket
