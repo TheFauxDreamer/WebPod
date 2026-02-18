@@ -614,8 +614,19 @@ td > .format-tag {
 .col-nr { width: 40px; }
 .col-duration { width: 70px; text-align: right; }
 .col-plays { width: 60px; text-align: right; }
+.col-rating { width: 90px; text-align: center; }
 .col-genre { width: 120px; }
 .col-format { width: 70px; }
+
+/* Star ratings */
+.star-rating { cursor: pointer; font-size: 14px; padding: 0 1px; }
+.star-filled { color: var(--accent); }
+.star-empty { color: var(--text-secondary); }
+.star-rating:hover { transform: scale(1.2); }
+
+/* Hide song details (rating + plays) when setting is off */
+.hide-song-details .col-rating,
+.hide-song-details .col-plays { display: none; }
 
 /* ─── Infinite Scroll ────────────────────────────── */
 
@@ -2447,5 +2458,22 @@ body.ipod-mode #ipod-icon {
 #ipod-all-songs-scroll-container {
     overflow-y: auto;
     max-height: 100%;
+}
+
+/* ─── Sync Preview Dialog ──────────────────────── */
+#sync-preview-tracks {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 8px 0;
+}
+
+#sync-preview-tracks table {
+    width: 100%;
+}
+
+#sync-preview-warning {
+    color: var(--danger);
+    margin: 8px 0;
+    font-weight: bold;
 }
 

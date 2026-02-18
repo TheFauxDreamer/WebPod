@@ -283,13 +283,33 @@ var IPod = {
             var tdAlbum = document.createElement('td');
             tdAlbum.textContent = track.album || 'Unknown';
 
+            var tdGenre = document.createElement('td');
+            tdGenre.textContent = track.genre || '';
+
             var tdDuration = document.createElement('td');
-            tdDuration.textContent = WebPod.formatDuration(track.duration);
+            tdDuration.textContent = WebPod.formatDuration(track.duration_ms || track.duration);
+
+            var tdPlays = document.createElement('td');
+            tdPlays.className = 'col-plays';
+            tdPlays.textContent = track.playcount || 0;
+
+            var tdRating = document.createElement('td');
+            tdRating.className = 'col-rating';
+            var stars = track.rating ? Math.round(track.rating / 20) : 0;
+            for (var s = 1; s <= 5; s++) {
+                var star = document.createElement('span');
+                star.className = 'star-rating' + (s <= stars ? ' star-filled' : ' star-empty');
+                star.textContent = s <= stars ? '\u2605' : '\u2606';
+                tdRating.appendChild(star);
+            }
 
             tr.appendChild(tdTitle);
             tr.appendChild(tdArtist);
             tr.appendChild(tdAlbum);
+            tr.appendChild(tdGenre);
             tr.appendChild(tdDuration);
+            tr.appendChild(tdPlays);
+            tr.appendChild(tdRating);
 
             tbody.appendChild(tr);
         });
@@ -997,17 +1017,63 @@ var IPodMode = {
 
             // Play count
             var tdPlays = document.createElement('td');
+            tdPlays.className = 'col-plays';
             tdPlays.textContent = track.playcount || 0;
             tr.appendChild(tdPlays);
 
+            // Rating (interactive stars)
+            var tdRating = document.createElement('td');
+            tdRating.className = 'col-rating';
+            var stars = track.rating ? Math.round(track.rating / 20) : 0;
+            for (var s = 1; s <= 5; s++) {
+                var star = document.createElement('span');
+                star.className = 'star-rating' + (s <= stars ? ' star-filled' : ' star-empty');
+                star.textContent = s <= stars ? '\u2605' : '\u2606';
+                star.dataset.value = s * 20;
+                star.dataset.trackId = track.id;
+                star.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var val = parseInt(this.dataset.value);
+                    var tid = parseInt(this.dataset.trackId);
+                    IPodMode.setRating(tid, val, this.parentElement);
+                });
+                tdRating.appendChild(star);
+            }
+            tr.appendChild(tdRating);
+
             // Click handler for row
             tr.addEventListener('click', function(e) {
-                if (e.target.type !== 'checkbox') {
+                if (e.target.type !== 'checkbox' && !e.target.classList.contains('star-rating')) {
                     IPodMode.handleTrackClick(e, track.id, index);
                 }
             });
 
             tbody.appendChild(tr);
+        });
+    },
+
+    /**
+     * Set rating for a track on the iPod
+     */
+    setRating: function(trackId, rating, container) {
+        // Optimistic UI update
+        var starSpans = container.querySelectorAll('.star-rating');
+        var starCount = Math.round(rating / 20);
+        for (var i = 0; i < starSpans.length; i++) {
+            if (i < starCount) {
+                starSpans[i].className = 'star-rating star-filled';
+                starSpans[i].textContent = '\u2605';
+            } else {
+                starSpans[i].className = 'star-rating star-empty';
+                starSpans[i].textContent = '\u2606';
+            }
+        }
+
+        WebPod.api('/api/ipod/tracks/' + trackId + '/rating', {
+            method: 'PUT',
+            body: { rating: rating }
+        }).catch(function() {
+            WebPod.toast('Failed to update rating', 'error');
         });
     },
 

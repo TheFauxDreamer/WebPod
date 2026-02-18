@@ -118,6 +118,25 @@ var WebPod = {
     },
 
     /**
+     * Apply show song details setting (rating & play count columns)
+     */
+    applySongDetails: function () {
+        var tables = [
+            document.getElementById('ipod-tracks-table'),
+            document.getElementById('ipod-all-songs-table')
+        ];
+        tables.forEach(function (table) {
+            if (table) {
+                if (WebPod.showSongDetails) {
+                    table.classList.remove('hide-song-details');
+                } else {
+                    table.classList.add('hide-song-details');
+                }
+            }
+        });
+    },
+
+    /**
      * Initialize system theme change listener for auto mode
      */
     initThemeListener: function () {
@@ -847,6 +866,8 @@ var WebPod = {
             WebPod.disableToasts = data.disable_toasts === true;
             WebPod.quickUpload = data.quick_upload === true;
             Upload.applyQuickUpload(WebPod.quickUpload);
+            WebPod.showSongDetails = data.show_song_details !== false;
+            WebPod.applySongDetails();
         }).catch(function () {
             // Settings not available
         });
@@ -872,6 +893,7 @@ var WebPod = {
         var compactDiscViewCheckbox = document.getElementById('compact-disc-view');
         var disableToastsCheckbox = document.getElementById('disable-toasts');
         var quickUploadCheckbox = document.getElementById('quick-upload');
+        var showSongDetailsCheckbox = document.getElementById('show-song-details');
         var allowNoMetadataCheckbox = document.getElementById('allow-files-without-metadata');
         var transcodeFlacCheckbox = document.getElementById('transcode-flac-to-ipod');
         var transcodeFlacFormat = document.getElementById('transcode-flac-format');
@@ -936,6 +958,7 @@ var WebPod = {
             compactDiscViewCheckbox.checked = WebPod.compactDiscView === true;
             disableToastsCheckbox.checked = WebPod.disableToasts === true;  // Default to false (toasts enabled)
             quickUploadCheckbox.checked = WebPod.quickUpload === true;  // Default to false
+            showSongDetailsCheckbox.checked = WebPod.showSongDetails !== false;  // Default to true
             allowNoMetadataCheckbox.checked = WebPod.allowFilesWithoutMetadata === true;  // Default to false (unchecked)
             transcodeFlacCheckbox.checked = WebPod.transcodeFlacToIpod !== false;  // Default to true (enabled)
             transcodeFlacFormat.value = WebPod.transcodeFlacFormat || 'alac';  // Default to ALAC
@@ -1081,6 +1104,7 @@ var WebPod = {
                 disable_toasts: disableToastsCheckbox.checked,
                 // Music
                 quick_upload: quickUploadCheckbox.checked,
+                show_song_details: showSongDetailsCheckbox.checked,
                 show_format_tags: formatTagsCheckbox.checked,
                 allow_files_without_metadata: allowNoMetadataCheckbox.checked,
                 transcode_flac_to_ipod: transcodeFlacCheckbox.checked,
@@ -1107,6 +1131,8 @@ var WebPod = {
                 WebPod.disableToasts = allSettings.disable_toasts;
                 WebPod.quickUpload = allSettings.quick_upload;
                 Upload.applyQuickUpload(WebPod.quickUpload);
+                WebPod.showSongDetails = allSettings.show_song_details;
+                WebPod.applySongDetails();
                 WebPod.showFormatTags = allSettings.show_format_tags;
                 WebPod.allowFilesWithoutMetadata = allSettings.allow_files_without_metadata;
                 WebPod.transcodeFlacToIpod = allSettings.transcode_flac_to_ipod;

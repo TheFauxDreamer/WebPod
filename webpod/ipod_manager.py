@@ -648,6 +648,42 @@ class IPodManager:
                 self._mountpoint = None
                 raise IPodError(f"Failed to re-open iPod after sync: {e}")
 
+    def sync_preview(self):
+        """Get a preview of what sync will do without actually syncing.
+
+        Returns:
+            Dict with pending_tracks list, sizes, and free space info.
+        """
+        with self._lock:
+            self._require_connected()
+            pending = []
+            total_size = 0
+            for i in range(len(self._db)):
+                track = self._db[i]
+                try:
+                    transferred = int(track['userdata']['transferred'])
+                except (KeyError, TypeError):
+                    transferred = 1
+                if not transferred:
+                    size = track['size'] or 0
+                    total_size += size
+                    pending.append({
+                        'title': track['title'] or 'Unknown',
+                        'artist': track['artist'] or 'Unknown',
+                        'album': track['album'] or 'Unknown',
+                        'size_bytes': size,
+                    })
+            storage = self.get_storage_info()
+            return {
+                'pending_tracks': pending,
+                'track_count': len(pending),
+                'total_size_bytes': total_size,
+                'total_size_mb': round(total_size / (1024**2), 1),
+                'free_bytes': storage['free_bytes'],
+                'free_mb': round(storage['free_bytes'] / (1024**2), 1),
+                'will_fit': total_size <= storage['free_bytes'],
+            }
+
     def export_tracks(self, destination_path, progress_callback=None):
         """Export all tracks from iPod to destination folder.
 
@@ -792,3 +828,31 @@ class IPodManager:
             'rating': track['rating'],
             'playcount': track['playcount'],
         }
+
+    def set_track_rating(self, track_id, rating):
+        """Set the rating for a track on the iPod.
+
+        Args:
+            track_id: The track ID
+            rating: Rating value 0-100 (snapped to nearest multiple of 20)
+
+        Returns:
+            Dict with updated id and rating
+        """
+        with self._lock:
+            self._require_connected()
+            rating = max(0, min(100, round(rating / 20) * 20))
+            for i in range(len(self._db)):
+                track = self._db[i]
+                if track['id'] == track_id:
+                    track['rating'] = rating
+                    self._db.close()
+                    mountpoint = self._mountpoint
+                    try:
+                        self._db = gpod.Database(mountpoint)
+                    except Exception as e:
+                        self._db = None
+                        self._mountpoint = None
+                        raise IPodError(f"Failed to reopen iPod after rating update: {e}")
+                    return {'id': track_id, 'rating': rating}
+            raise IPodError(f"Track with id {track_id} not found")

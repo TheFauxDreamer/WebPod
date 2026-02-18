@@ -266,6 +266,7 @@
                             <th class="col-genre">Genre</th>
                             <th class="col-duration">Duration</th>
                             <th class="col-plays">Plays</th>
+                            <th class="col-rating">Rating</th>
                         </tr>
                     </thead>
                     <tbody id="ipod-tracks-tbody"></tbody>
@@ -289,6 +290,7 @@
                                 <th class="col-genre">Genre</th>
                                 <th class="col-duration">Duration</th>
                                 <th class="col-plays">Plays</th>
+                                <th class="col-rating">Rating</th>
                             </tr>
                         </thead>
                         <tbody id="ipod-all-songs-tbody"></tbody>
@@ -657,6 +659,14 @@
                             </label>
                         </div>
 
+                        <div class="settings-group checkbox-group">
+                            <label for="show-song-details">
+                                <input type="checkbox" id="show-song-details" checked />
+                                <span>Show song details (ratings & play counts)</span>
+                                <small>Display star ratings and play count columns on iPod track views.</small>
+                            </label>
+                        </div>
+
                         <!-- Library Actions -->
                         <div class="settings-actions">
                             <button id="library-save" class="btn btn-primary">Save</button>
@@ -810,6 +820,20 @@
             <div class="dialog-actions">
                 <button id="upload-start-btn" class="btn btn-primary hidden">Upload</button>
                 <button id="upload-close" class="btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Preview Dialog -->
+    <div id="sync-preview-dialog" class="dialog-overlay hidden">
+        <div class="dialog dialog-wide">
+            <h3>Sync Preview</h3>
+            <div id="sync-preview-summary"></div>
+            <div id="sync-preview-warning" class="hidden">Not enough free space on iPod!</div>
+            <div id="sync-preview-tracks"></div>
+            <div class="dialog-actions">
+                <button id="sync-preview-cancel" class="btn">Cancel</button>
+                <button id="sync-preview-confirm" class="btn btn-primary">Sync Now</button>
             </div>
         </div>
     </div>

@@ -92,6 +92,9 @@ def get_settings():
     # Quick upload setting
     quick_upload = models.get_setting('quick_upload') == '1'  # Default to False
 
+    # Song details (ratings & play counts) setting
+    show_song_details = models.get_setting('show_song_details') != '0'  # Default to True
+
     # Video settings
     video_path = models.get_setting('video_library_path')
 
@@ -116,7 +119,8 @@ def get_settings():
         'transcode_flac_to_ipod': transcode_flac_enabled,
         'transcode_flac_format': transcode_format,
         'disable_toasts': disable_toasts,
-        'quick_upload': quick_upload
+        'quick_upload': quick_upload,
+        'show_song_details': show_song_details
     })
 
 
@@ -188,6 +192,9 @@ def save_settings():
 
     if 'quick_upload' in data:
         models.set_setting('quick_upload', '1' if data['quick_upload'] else '0')
+
+    if 'show_song_details' in data:
+        models.set_setting('show_song_details', '1' if data['show_song_details'] else '0')
 
     return jsonify({"success": True})
 
@@ -833,6 +840,29 @@ def ipod_sync():
 
     socketio.start_background_task(_sync)
     return jsonify({"status": "syncing"})
+
+
+@app.route('/api/ipod/sync-preview', methods=['GET'])
+def ipod_sync_preview():
+    """Get a preview of pending sync operations."""
+    try:
+        preview = ipod.sync_preview()
+        return jsonify(preview)
+    except IPodError as e:
+        return jsonify({"error": str(e)}), 503
+
+
+@app.route('/api/ipod/tracks/<int:track_id>/rating', methods=['PUT'])
+def ipod_set_track_rating(track_id):
+    """Set the rating for a track on the iPod."""
+    data = request.get_json()
+    if not data or 'rating' not in data:
+        return jsonify({"error": "Rating value required"}), 400
+    try:
+        result = ipod.set_track_rating(track_id, data['rating'])
+        return jsonify(result)
+    except IPodError as e:
+        return jsonify({"error": str(e)}), 503
 
 
 @app.route('/api/ipod/export', methods=['POST'])

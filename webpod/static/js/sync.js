@@ -23,6 +23,86 @@ var Sync = {
             WebPod.toast('This iPod model is not supported by libgpod', 'warning');
             return;
         }
+        Sync.showPreview();
+    },
+
+    /**
+     * Fetch sync preview and show the preview dialog
+     */
+    showPreview: function() {
+        WebPod.api('/api/ipod/sync-preview').then(function(data) {
+            if (data.track_count === 0) {
+                WebPod.toast('Nothing to sync', 'info');
+                return;
+            }
+
+            // Summary
+            var summary = document.getElementById('sync-preview-summary');
+            summary.textContent = '';
+            var p1 = document.createElement('p');
+            p1.textContent = data.track_count + ' track(s) to copy (' + data.total_size_mb + ' MB)';
+            var p2 = document.createElement('p');
+            p2.textContent = 'iPod free space: ' + data.free_mb + ' MB';
+            summary.appendChild(p1);
+            summary.appendChild(p2);
+
+            // Warning
+            var warning = document.getElementById('sync-preview-warning');
+            var confirmBtn = document.getElementById('sync-preview-confirm');
+            if (!data.will_fit) {
+                warning.classList.remove('hidden');
+                confirmBtn.disabled = true;
+            } else {
+                warning.classList.add('hidden');
+                confirmBtn.disabled = false;
+            }
+
+            // Build track list table
+            var container = document.getElementById('sync-preview-tracks');
+            container.textContent = '';
+            var table = document.createElement('table');
+            table.className = 'tracks-table';
+            var thead = document.createElement('thead');
+            var headerRow = document.createElement('tr');
+            ['Title', 'Artist', 'Album', 'Size'].forEach(function(label) {
+                var th = document.createElement('th');
+                th.textContent = label;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            var tbody = document.createElement('tbody');
+            data.pending_tracks.forEach(function(t) {
+                var tr = document.createElement('tr');
+                var tdTitle = document.createElement('td');
+                tdTitle.textContent = t.title;
+                var tdArtist = document.createElement('td');
+                tdArtist.textContent = t.artist;
+                var tdAlbum = document.createElement('td');
+                tdAlbum.textContent = t.album;
+                var tdSize = document.createElement('td');
+                tdSize.textContent = (t.size_bytes / (1024 * 1024)).toFixed(1) + ' MB';
+                tr.appendChild(tdTitle);
+                tr.appendChild(tdArtist);
+                tr.appendChild(tdAlbum);
+                tr.appendChild(tdSize);
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            container.appendChild(table);
+
+            document.getElementById('sync-preview-dialog').classList.remove('hidden');
+        }).catch(function(err) {
+            WebPod.toast('Failed to load sync preview', 'error');
+        });
+    },
+
+    /**
+     * Confirm and execute the sync after preview
+     */
+    confirmSync: function() {
+        document.getElementById('sync-preview-dialog').classList.add('hidden');
 
         Sync.syncing = true;
         Sync.showProgress('Syncing...', 0);
@@ -71,6 +151,14 @@ var Sync = {
         // Sync button
         document.getElementById('sync-btn').addEventListener('click', function() {
             Sync.start();
+        });
+
+        // Sync preview dialog buttons
+        document.getElementById('sync-preview-confirm').addEventListener('click', function() {
+            Sync.confirmSync();
+        });
+        document.getElementById('sync-preview-cancel').addEventListener('click', function() {
+            document.getElementById('sync-preview-dialog').classList.add('hidden');
         });
 
         // Wait for socket to be available, then bind events
