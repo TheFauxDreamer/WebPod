@@ -80,8 +80,14 @@ def check_libgpod_bindings():
     """Check if libgpod Python bindings can be loaded and print diagnostics if not."""
     try:
         import gpod
+        if not hasattr(gpod, 'Database'):
+            raise ImportError("gpod loaded but Database class missing (partial import)")
         return
     except ImportError as e:
+        # Clean stale partial module from sys.modules so later imports retry from scratch
+        for key in list(sys.modules.keys()):
+            if key == 'gpod' or key.startswith('gpod.'):
+                del sys.modules[key]
         import os
         print(f"Warning: libgpod Python bindings not available ({e})")
         print(f"  Running Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
@@ -157,8 +163,8 @@ def open_browser(port):
 def main():
     check_python_version()
     setup_libgpod_paths()
-    check_libgpod_bindings()
     ensure_dependencies()
+    check_libgpod_bindings()
 
     # Add parent directory to path so webpod package can be imported
     import os

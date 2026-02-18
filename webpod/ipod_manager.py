@@ -137,11 +137,17 @@ class IPodManager:
         with self._lock:
             if self._db is not None:
                 raise IPodError("Already connected to an iPod. Disconnect first.")
+            print(f"[iPod] Connecting to {mountpoint}")
+            print(f"[iPod] gpod module: {gpod}")
+            print(f"[iPod] gpod.Database: {getattr(gpod, 'Database', 'NOT FOUND')}")
+            print(f"[iPod] gpod file: {getattr(gpod, '__file__', 'unknown')}")
             try:
                 self._db = gpod.Database(mountpoint)
             except Exception as e:
+                print(f"[iPod] Connection failed: {type(e).__name__}: {e}")
                 raise IPodError(f"Failed to connect to iPod at {mountpoint}: {e}")
             self._mountpoint = mountpoint
+            print(f"[iPod] Connected successfully, {len(self._db)} tracks")
 
     def disconnect(self):
         """Sync pending files, save database, and disconnect."""
