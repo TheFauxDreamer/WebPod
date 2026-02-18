@@ -96,6 +96,18 @@ def transcode_flac_to_alac(flac_path, target_format='alac'):
         return None
 
 
+# Generations that require HASH72/HASHAB checksums — libgpod cannot reliably
+# write to these devices without device-specific keys.
+UNSUPPORTED_GENERATIONS = {
+    'Nano with camera (5th Gen.)',
+    'Nano touch (6th Gen.)',
+    'Touch', 'Touch (2nd Gen.)', 'Touch (3rd Gen.)', 'Touch (4th Gen.)',
+    'iPhone', 'iPhone 3G', 'iPhone 3GS', 'iPhone 4',
+    'iPad',
+    'Unknown',
+}
+
+
 class IPodError(Exception):
     """Exception for iPod operation errors."""
     pass
@@ -368,13 +380,15 @@ class IPodManager:
                     except Exception:
                         video_support = False
 
+                    gen_string = gpod.itdb_info_get_ipod_generation_string(info.ipod_generation)
                     return {
                         'model': info.ipod_model,
                         'generation': info.ipod_generation,
                         'capacity': info.capacity,
                         'model_string': gpod.itdb_info_get_ipod_model_name_string(info.ipod_model),
-                        'generation_string': gpod.itdb_info_get_ipod_generation_string(info.ipod_generation),
+                        'generation_string': gen_string,
                         'supports_video': video_support,
+                        'supported': gen_string not in UNSUPPORTED_GENERATIONS,
                         'name': ipod_name,
                     }
             except Exception:
@@ -387,6 +401,7 @@ class IPodManager:
                 'model_string': 'Unknown iPod',
                 'generation_string': 'Unknown',
                 'supports_video': False,
+                'supported': False,
                 'name': ipod_name,
             }
 

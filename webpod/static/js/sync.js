@@ -19,6 +19,10 @@ var Sync = {
             WebPod.toast('No iPod connected', 'warning');
             return;
         }
+        if (IPod.unsupported) {
+            WebPod.toast('This iPod model is not supported by libgpod', 'warning');
+            return;
+        }
 
         Sync.syncing = true;
         Sync.showProgress('Syncing...', 0);
@@ -99,7 +103,7 @@ var Sync = {
                 }
 
                 var syncBtn = document.getElementById('sync-btn');
-                syncBtn.disabled = !IPod.connected;
+                syncBtn.disabled = !IPod.connected || IPod.unsupported;
 
                 // Refresh iPod tracks and playlists
                 if (IPod.connected) {

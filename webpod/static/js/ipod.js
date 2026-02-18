@@ -4,6 +4,7 @@
  */
 var IPod = {
     connected: false,
+    unsupported: false,
     currentMountpoint: null,
     selectedPlaylistId: null,
     deviceName: null,
@@ -113,7 +114,36 @@ var IPod = {
             document.getElementById('sync-btn').disabled = false;
             IPod.loadPlaylists();
             WebPod.toast('iPod connected', 'success');
+
+            // Check device support
+            WebPod.api('/api/ipod/device-info').then(function(info) {
+                if (info.supported === false) {
+                    IPod.setUnsupported(true);
+                }
+            });
         });
+    },
+
+    /**
+     * Enable or disable unsupported iPod mode
+     */
+    setUnsupported: function(unsupported) {
+        IPod.unsupported = unsupported;
+        var btns = [
+            'sync-btn', 'add-all-content-btn', 'new-playlist-btn',
+            'import-m3u-btn', 'ipod-mode-sync-btn', 'ipod-mode-new-playlist-btn'
+        ];
+        var tooltip = unsupported ? 'This iPod model is not supported by libgpod' : '';
+        btns.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.disabled = unsupported;
+                el.title = tooltip;
+            }
+        });
+        if (unsupported) {
+            WebPod.toast('This iPod model is not fully supported by libgpod. Sync features are disabled.', 'warning');
+        }
     },
 
     /**
@@ -130,6 +160,9 @@ var IPod = {
             IPod.currentMountpoint = null;
             IPod.selectedPlaylistId = null;
             IPod.deviceName = null;
+            if (IPod.unsupported) {
+                IPod.setUnsupported(false);
+            }
             var statusText = document.getElementById('ipod-status-text');
             statusText.textContent = 'No iPod connected';
             statusText.style.cursor = 'default';
