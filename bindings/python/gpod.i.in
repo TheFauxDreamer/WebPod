@@ -113,7 +113,7 @@ PyObject* sw_get_photoalbum_members(Itdb_PhotoAlbum *album);
 PyObject* sw_ipod_device_to_dict(Itdb_Device *device);
 void sw__track_extra_destroy (PyObject *data);
 void hash_table_to_pydict(gpointer key, gpointer value, gpointer user_data);
-void SWIG_init(void);
+PyMODINIT_FUNC SWIG_init(void);
 
 PyObject* sw_get_tracks(Itdb_iTunesDB *itdb) {
   PyObject    *list;

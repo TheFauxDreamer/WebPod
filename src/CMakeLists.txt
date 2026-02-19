@@ -46,6 +46,7 @@ target_link_libraries(gpod
         m
 )
 
+target_compile_options(gpod PRIVATE -Wno-implicit-function-declaration)
 target_compile_definitions(gpod PRIVATE
     HAVE_CONFIG_H
     LIBGPOD_BLOB_DIR="${LIBGPOD_BLOB_DIR}"
