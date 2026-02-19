@@ -65,15 +65,31 @@ version = '.'.join(map(str, version_info))
 #endif
 #endif
 
-/* Python 2/3 compatibility — PyInt was merged into PyLong in Python 3 */
+/* Python 2/3 compatibility — PyInt was merged into PyLong in Python 3.
+   SWIG already defines PyInt_Check, PyInt_FromLong, PyInt_AsLong for
+   Python 3, so we only add the ones it misses. */
 #if PY_MAJOR_VERSION >= 3
+#ifndef PyInt_Check
 #define PyInt_Check             PyLong_Check
+#endif
+#ifndef PyInt_CheckExact
 #define PyInt_CheckExact        PyLong_CheckExact
+#endif
+#ifndef PyInt_FromLong
 #define PyInt_FromLong          PyLong_FromLong
+#endif
+#ifndef PyInt_AsLong
 #define PyInt_AsLong            PyLong_AsLong
+#endif
+#ifndef PyInt_AsInt
 #define PyInt_AsInt             PyLong_AsLong
+#endif
+#ifndef PyInt_AsUnsignedLongMask
 #define PyInt_AsUnsignedLongMask      PyLong_AsUnsignedLongMask
+#endif
+#ifndef PyInt_AsUnsignedLongLongMask
 #define PyInt_AsUnsignedLongLongMask  PyLong_AsUnsignedLongLongMask
+#endif
 #endif
 
 
