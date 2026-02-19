@@ -67,9 +67,12 @@ def setup_libgpod_paths():
             existing = os.environ.get('LD_LIBRARY_PATH', '')
             os.environ['LD_LIBRARY_PATH'] = ':'.join(lib_paths + ([existing] if existing else []))
         else:
-            # Windows: add to PATH
+            # Windows: add to PATH (for subprocesses) and add_dll_directory (for Python 3.8+ extension loading)
             existing = os.environ.get('PATH', '')
             os.environ['PATH'] = ';'.join(lib_paths) + ';' + existing
+            for p in lib_paths:
+                if os.path.isdir(p):
+                    os.add_dll_directory(p)
 
     # Add Python site-packages to import path
     if python_paths:
