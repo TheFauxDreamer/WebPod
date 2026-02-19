@@ -254,11 +254,15 @@ jobs:
           BINDIR="$(pwd)/staging/mingw64/bin"
           echo "=== gpod package contents ==="
           ls -la "$SITE/gpod/"
-          echo "=== _gpod.pyd dependencies ==="
-          ldd "$SITE/gpod/_gpod.pyd" || true
+
+          # Use ldd on libgpod.dll (standard MINGW64 binary) instead of
+          # _gpod.pyd which gives "Exec format error" since it's linked
+          # against native CPython's python3XX.dll.
+          echo "=== libgpod.dll dependencies ==="
+          ldd "$BINDIR/libgpod.dll" || ldd "$SITE/gpod/libgpod.dll" || true
           echo "=== Checking all MINGW64 deps are bundled ==="
           MISSING=""
-          for dll in $( (ldd "$SITE/gpod/_gpod.pyd" 2>/dev/null | grep '=> /mingw64/bin/' | awk '{print $1}') || true); do
+          for dll in $( (ldd "$BINDIR/libgpod.dll" 2>/dev/null | grep '=> /mingw64/bin/' | awk '{print $1}') || true); do
             if [ ! -f "$BINDIR/$dll" ] && [ ! -f "$SITE/gpod/$dll" ]; then
               MISSING="$MISSING $dll"
             fi
@@ -269,8 +273,14 @@ jobs:
           else
             echo "All MINGW64 DLL dependencies are bundled."
           fi
-          export PYTHONPATH="$SITE"
-          python -c "import gpod; assert hasattr(gpod, 'Database'), 'Database class missing'; print('gpod module loaded successfully')"
+
+          # Verify import using NATIVE Python (not MSYS2 Python).
+          # _gpod.pyd is linked against native CPython's python3XX.dll,
+          # so only native Python can load it.
+          NATIVE_DIR=$(cygpath "$NATIVE_PYTHON_DIR")
+          WINSITE=$(cygpath -w "$SITE")
+          WINBIN=$(cygpath -w "$BINDIR")
+          "$NATIVE_DIR/python.exe" -c "import os, sys; os.add_dll_directory(r'$WINBIN'); sys.path.insert(0, r'$WINSITE'); import gpod; assert hasattr(gpod, 'Database'), 'Database class missing'; print('gpod module loaded successfully with native Python')"
 
   release:
     needs: [build, build-windows]
