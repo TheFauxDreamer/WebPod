@@ -134,6 +134,10 @@ jobs:
           $pythonDir = Split-Path "${{ steps.setup-python.outputs.python-path }}"
           echo "NATIVE_PYTHON_DIR=$pythonDir" >> $env:GITHUB_ENV
 
+      - name: Install native Python packages
+        shell: pwsh
+        run: pip install mutagen
+
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
