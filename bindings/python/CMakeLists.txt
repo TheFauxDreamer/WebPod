@@ -70,13 +70,8 @@ if(WIN32)
 endif()
 
 # Install the gpod Python package
-# Determine site-packages path
-execute_process(
-    COMMAND ${Python3_EXECUTABLE} -c
-        "import sysconfig; print(sysconfig.get_path('purelib'))"
-    OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+# Use a relative path so cmake --install --prefix works correctly
+set(PYTHON_SITE_PACKAGES "lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages")
 
 install(TARGETS _gpod DESTINATION ${PYTHON_SITE_PACKAGES}/gpod)
 install(FILES
