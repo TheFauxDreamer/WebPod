@@ -78,6 +78,16 @@ def setup_libgpod_paths():
     if python_paths:
         sys.path[0:0] = python_paths
 
+    # On Windows (Python 3.8+), also register the gpod package directory as a
+    # DLL search path.  libgpod.dll is copied there during packaging, and
+    # os.add_dll_directory() is the only mechanism Python uses to locate
+    # dependent DLLs for extension modules.
+    if sys.platform == 'win32':
+        for sp in python_paths:
+            gpod_dir = os.path.join(sp, 'gpod')
+            if os.path.isdir(gpod_dir):
+                os.add_dll_directory(gpod_dir)
+
     # Check gpod directory health and repair if needed
     for sp in python_paths:
         gpod_dir = os.path.join(sp, 'gpod')
@@ -134,6 +144,38 @@ def check_libgpod_bindings():
             built_for = ', '.join(found_versions)
             print(f"  Hint: Install Python {built_for} to match the bundled bindings,")
             print(f"        or download a build matching your Python {running}.")
+
+        # On Windows, diagnose missing DLL dependencies
+        if sys.platform == 'win32' and 'DLL load failed' in str(e):
+            # Find where _gpod.pyd lives
+            gpod_pkg_dir = None
+            for sp in sys.path:
+                candidate = os.path.join(sp, 'gpod', '_gpod.pyd')
+                if os.path.isfile(candidate):
+                    gpod_pkg_dir = os.path.join(sp, 'gpod')
+                    break
+
+            if gpod_pkg_dir:
+                pkg_dlls = [f for f in os.listdir(gpod_pkg_dir) if f.lower().endswith(('.dll', '.pyd'))]
+                print(f"  _gpod.pyd directory: {gpod_pkg_dir}")
+                print(f"  DLLs in package dir: {', '.join(sorted(pkg_dlls))}")
+
+            # Check mingw64/bin for bundled runtime DLLs
+            mingw_bin = os.path.join(parent_dir, 'mingw64', 'bin')
+            if os.path.isdir(mingw_bin):
+                bin_dlls = [f for f in os.listdir(mingw_bin) if f.lower().endswith('.dll')]
+                print(f"  mingw64/bin: {mingw_bin} ({len(bin_dlls)} DLLs)")
+                expected = ['libglib-2.0-0.dll', 'libgobject-2.0-0.dll',
+                            'libsqlite3-0.dll', 'libintl-8.dll',
+                            'libplist-2.0.dll']
+                missing = [d for d in expected if d not in bin_dlls]
+                if missing:
+                    print(f"  MISSING runtime DLLs: {', '.join(missing)}")
+                    print(f"  The release is missing bundled MINGW64 DLLs.")
+                    print(f"  Please download a newer release that includes them.")
+            else:
+                print(f"  mingw64/bin NOT FOUND at: {mingw_bin}")
+                print(f"  This directory must contain MINGW64 runtime DLLs.")
 
         print("  iPod features will be unavailable.")
         print()

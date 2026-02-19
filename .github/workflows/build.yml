@@ -156,6 +156,51 @@ jobs:
       - name: Install to staging directory
         run: cmake --install build --prefix "$(pwd)/staging/mingw64"
 
+      - name: Bundle MINGW64 runtime DLLs
+        run: |
+          PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+          SITE="$(pwd)/staging/mingw64/lib/python${PYVER}/site-packages"
+          BINDIR="$(pwd)/staging/mingw64/bin"
+          mkdir -p "$BINDIR"
+
+          collect_deps() {
+            ldd "$1" 2>/dev/null | grep '=> /mingw64/bin/' | awk '{print $3}' | sort -u
+          }
+
+          # Seed with dependencies from _gpod.pyd and libgpod.dll
+          TO_CHECK=$(collect_deps "$SITE/gpod/_gpod.pyd")
+          for dll_path in "$BINDIR"/libgpod*.dll; do
+            [ -f "$dll_path" ] && TO_CHECK="$TO_CHECK"$'\n'"$(collect_deps "$dll_path")"
+          done
+          TO_CHECK=$(echo "$TO_CHECK" | sort -u | grep -v '^$')
+
+          # Recursively resolve transitive dependencies
+          COPIED=""
+          while [ -n "$TO_CHECK" ]; do
+            NEW_DEPS=""
+            for dll in $TO_CHECK; do
+              dll_name=$(basename "$dll")
+              if [ ! -f "$BINDIR/$dll_name" ]; then
+                cp "$dll" "$BINDIR/"
+                COPIED="$COPIED $dll_name"
+                NEW_DEPS="$NEW_DEPS"$'\n'"$(collect_deps "$dll")"
+              fi
+            done
+            TO_CHECK=$(echo "$NEW_DEPS" | sort -u | grep -v '^$')
+          done
+
+          echo "=== Bundled $(echo $COPIED | wc -w) MINGW64 DLLs ==="
+          for d in $COPIED; do echo "  $d"; done
+          echo "=== staging/mingw64/bin/ contents ==="
+          ls "$BINDIR/"*.dll 2>/dev/null || echo "(none)"
+
+      - name: Copy libgpod DLL into gpod package
+        run: |
+          PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+          SITE="$(pwd)/staging/mingw64/lib/python${PYVER}/site-packages"
+          cp staging/mingw64/bin/libgpod*.dll "$SITE/gpod/" 2>/dev/null || \
+            cp staging/mingw64/lib/libgpod*.dll "$SITE/gpod/" 2>/dev/null || true
+
       - name: Package artifacts
         run: |
           cp -r webpod staging/webpod
@@ -172,15 +217,24 @@ jobs:
         run: |
           PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
           SITE="$(pwd)/staging/mingw64/lib/python${PYVER}/site-packages"
-          # Copy libgpod DLL next to _gpod.pyd so Windows can find it
-          cp staging/mingw64/bin/libgpod*.dll "$SITE/gpod/" 2>/dev/null || cp staging/mingw64/lib/libgpod*.dll "$SITE/gpod/" 2>/dev/null || true
+          BINDIR="$(pwd)/staging/mingw64/bin"
           echo "=== gpod package contents ==="
           ls -la "$SITE/gpod/"
-          echo "=== binary format ==="
-          file "$SITE/gpod/_gpod.pyd" || true
-          file "$SITE/gpod/libgpod.dll" || true
           echo "=== _gpod.pyd dependencies ==="
           ldd "$SITE/gpod/_gpod.pyd" || true
+          echo "=== Checking all MINGW64 deps are bundled ==="
+          MISSING=""
+          for dll in $(ldd "$SITE/gpod/_gpod.pyd" 2>/dev/null | grep '=> /mingw64/bin/' | awk '{print $1}'); do
+            if [ ! -f "$BINDIR/$dll" ] && [ ! -f "$SITE/gpod/$dll" ]; then
+              MISSING="$MISSING $dll"
+            fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo "ERROR: Missing bundled DLLs:$MISSING"
+            exit 1
+          else
+            echo "All MINGW64 DLL dependencies are bundled."
+          fi
           export PYTHONPATH="$SITE"
           python -c "import gpod; assert hasattr(gpod, 'Database'), 'Database class missing'; print('gpod module loaded successfully')"
 
