@@ -14,27 +14,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-22.04
-            python-version: '3.10'
-            artifact-name: libgpod-linux-x86_64-py3.10
-          - os: ubuntu-24.04
-            python-version: '3.12'
-            artifact-name: libgpod-linux-x86_64-py3.12
-          - os: macos-15-intel
-            python-version: '3.12'
-            artifact-name: libgpod-macos-x86_64-py3.12
-          - os: macos-15
-            python-version: '3.12'
-            artifact-name: libgpod-macos-arm64-py3.12
-          - os: ubuntu-24.04
-            python-version: '3.13'
-            artifact-name: libgpod-linux-x86_64-py3.13
           - os: ubuntu-24.04
             python-version: '3.14'
             artifact-name: libgpod-linux-x86_64-py3.14
-          - os: macos-15-intel
-            python-version: '3.14'
-            artifact-name: libgpod-macos-x86_64-py3.14
           - os: macos-15
             python-version: '3.14'
             artifact-name: libgpod-macos-arm64-py3.14
@@ -58,154 +40,55 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            cmake \
+            pkg-config \
+            swig \
+            python3-dev \
             libglib2.0-dev \
             libsqlite3-dev \
             libplist-dev \
             zlib1g-dev \
             libgdk-pixbuf-2.0-dev \
-            libxml2-dev \
-            swig \
-            intltool \
-            gtk-doc-tools \
-            gnome-common \
-            python3-dev \
-            gettext \
-            autoconf \
-            automake \
-            libtool \
-            pkg-config
-          # libplist 2.x ships libplist-2.0.pc but configure.ac expects libplist.pc
-          PLIST_PC=$(pkg-config --variable=pcfiledir libplist-2.0 2>/dev/null || true)
-          if [ -n "$PLIST_PC" ] && [ ! -f "$PLIST_PC/libplist.pc" ]; then
-            sudo ln -s "$PLIST_PC/libplist-2.0.pc" "$PLIST_PC/libplist.pc"
-          fi
+            libxml2-dev
 
       - name: Install system dependencies (macOS)
         if: startsWith(matrix.os, 'macos')
         run: |
           brew install \
+            cmake \
+            pkg-config \
+            swig \
             glib \
             sqlite \
             libplist \
             gdk-pixbuf \
-            libxml2 \
-            swig \
-            intltool \
-            gtk-doc \
-            automake \
-            autoconf \
-            libtool \
-            gettext \
-            pkg-config \
-            perl \
-            expat
-          # intltool requires XML::Parser perl module; expat headers needed to build it
-          EXPAT_PREFIX="$(brew --prefix expat)"
-          PERL_MM_USE_DEFAULT=1 CPATH="$EXPAT_PREFIX/include" LIBRARY_PATH="$EXPAT_PREFIX/lib" \
-            $(brew --prefix perl)/bin/cpan XML::Parser
-          # Ensure gettext, libtool, and perl are on PATH
-          echo "$(brew --prefix gettext)/bin" >> $GITHUB_PATH
-          echo "$(brew --prefix libtool)/bin" >> $GITHUB_PATH
-          echo "$(brew --prefix perl)/bin" >> $GITHUB_PATH
-          # libplist 2.x ships libplist-2.0.pc but configure.ac expects libplist.pc
-          PLIST_PC="$(brew --prefix libplist)/lib/pkgconfig"
-          if [ -d "$PLIST_PC" ] && [ ! -f "$PLIST_PC/libplist.pc" ]; then
-            ln -s "$PLIST_PC/libplist-2.0.pc" "$PLIST_PC/libplist.pc"
-          fi
-
-      - name: Generate build system
-        run: autoreconf -fi
+            libxml2
 
       - name: Configure
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
-            # Help pkg-config find brew packages
             export PKG_CONFIG_PATH="$(brew --prefix libplist)/lib/pkgconfig:$(brew --prefix glib)/lib/pkgconfig:$(brew --prefix gdk-pixbuf)/lib/pkgconfig:$(brew --prefix libxml2)/lib/pkgconfig:$(brew --prefix sqlite)/lib/pkgconfig:$PKG_CONFIG_PATH"
           fi
-          ./configure \
-            --with-python \
-            --prefix=/usr/local \
-            --disable-more-warnings \
-            --without-hal \
-            --disable-udev \
-            --without-libimobiledevice
-
-      - name: Fix gmodule linkage
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          # itdb_hashAB.c uses g_module_open/g_module_symbol from gmodule-2.0
-          # but configure.ac only links glib-2.0 + gobject-2.0. Linux resolves
-          # these transitively, macOS does not. Append gmodule-2.0 to LIBGPOD_LIBS
-          # in src/Makefile which is what actually gets linked.
-          export PKG_CONFIG_PATH="$(brew --prefix glib)/lib/pkgconfig:$PKG_CONFIG_PATH"
-          GMODULE_LIBS="$(pkg-config --libs gmodule-2.0)"
-          sed -i '' "s|^LIBGPOD_LIBS = \\(.*\\)|LIBGPOD_LIBS = \\1 ${GMODULE_LIBS}|" src/Makefile
-
-      - name: Verify Python bindings will be built
-        run: |
-          if grep -q '^#gpoddir' bindings/python/Makefile; then
-            echo "::error::Python bindings are DISABLED (HAVE_PYTHON=no)"
-            PYINC=$(python -c 'import sysconfig; print(sysconfig.get_path("include"))')
-            echo "Python includes dir: $PYINC"
-            ls "$PYINC/Python.h" 2>/dev/null || echo "Python.h not found"
-            grep -A3 'checking for python' config.log | tail -20 || true
-            exit 1
-          fi
-          echo "Python bindings are enabled"
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr/local
 
       - name: Build
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-            make -j$(nproc)
+            cmake --build build --parallel $(nproc)
           else
-            make -j$(sysctl -n hw.ncpu)
+            cmake --build build --parallel $(sysctl -n hw.ncpu)
           fi
 
       - name: Install to staging directory
-        run: make install DESTDIR=$(pwd)/staging
-
-      - name: Normalize gpod module path
-        run: |
-          # Ensure gpod Python module is at the canonical path that run.py expects
-          PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-          TARGET="staging/usr/local/lib/python${PYVER}/site-packages"
-
-          # Look for a gpod directory that contains Python files (not C headers)
-          GPOD_DIR=""
-          for dir in $(find staging -type d -name gpod 2>/dev/null); do
-            if [ -f "$dir/ipod.py" ] || [ -f "$dir/__init__.py" ]; then
-              GPOD_DIR="$dir"
-              break
-            fi
-          done
-
-          if [ -z "$GPOD_DIR" ]; then
-            echo "::error::gpod Python package not found in staging directory"
-            echo "Directories named 'gpod' found:"
-            find staging -type d -name gpod 2>/dev/null
-            for dir in $(find staging -type d -name gpod 2>/dev/null); do
-              echo "  $dir contents: $(ls $dir)"
-            done
-            exit 1
-          fi
-
-          echo "Found gpod at: $GPOD_DIR"
-          echo "Target: $TARGET/gpod"
-          if [ "$GPOD_DIR" != "$TARGET/gpod" ]; then
-            mkdir -p "$TARGET"
-            mv "$GPOD_DIR" "$TARGET/gpod"
-            echo "Moved gpod to canonical location"
-          else
-            echo "gpod already at canonical location"
-          fi
-          ls -la "$TARGET/gpod/"
+        run: cmake --install build --prefix "$(pwd)/staging/usr/local"
 
       - name: Package artifacts
         run: |
           cp -r webpod staging/webpod
           cd staging
           tar czf ../${{ matrix.artifact-name }}.tar.gz .
-          cd ..
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -215,25 +98,17 @@ jobs:
 
       - name: Verify Python bindings
         run: |
-          # Add the staged library paths so the module can be loaded
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             export LD_LIBRARY_PATH=$(pwd)/staging/usr/local/lib:$LD_LIBRARY_PATH
           else
             export DYLD_LIBRARY_PATH=$(pwd)/staging/usr/local/lib:$DYLD_LIBRARY_PATH
           fi
-          PYTHONPATH="$(pwd)/staging/usr/local/lib/python${{ matrix.python-version }}/site-packages"
+          PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+          PYTHONPATH="$(pwd)/staging/usr/local/lib/python${PYVER}/site-packages"
           export PYTHONPATH
           python -c "import gpod; assert hasattr(gpod, 'Database'), 'Database class missing'; print('gpod module loaded successfully')"
 
   build-windows:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - msystem: MINGW64
-            arch: x86_64
-            artifact-name: libgpod-windows-x86_64-py3.14
-
     runs-on: windows-latest
 
     defaults:
@@ -247,169 +122,50 @@ jobs:
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          msystem: ${{ matrix.msystem }}
+          msystem: MINGW64
           update: true
           install: >-
-            mingw-w64-${{ matrix.arch }}-gcc
-            mingw-w64-${{ matrix.arch }}-glib2
-            mingw-w64-${{ matrix.arch }}-sqlite3
-            mingw-w64-${{ matrix.arch }}-libplist
-            mingw-w64-${{ matrix.arch }}-zlib
-            mingw-w64-${{ matrix.arch }}-gdk-pixbuf2
-            mingw-w64-${{ matrix.arch }}-libxml2
-            mingw-w64-${{ matrix.arch }}-swig
-            mingw-w64-${{ matrix.arch }}-python
-            mingw-w64-${{ matrix.arch }}-python-mutagen
-            mingw-w64-${{ matrix.arch }}-pkg-config
-            autoconf
-            automake
-            libtool
-            intltool
-            gettext-devel
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-glib2
+            mingw-w64-x86_64-sqlite3
+            mingw-w64-x86_64-libplist
+            mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-gdk-pixbuf2
+            mingw-w64-x86_64-libxml2
+            mingw-w64-x86_64-swig
+            mingw-w64-x86_64-python
+            mingw-w64-x86_64-python-mutagen
+            mingw-w64-x86_64-pkg-config
             make
 
       - name: Show MSYS2 Python version
         run: python --version
 
-      - name: Create libplist pkg-config compatibility symlink
-        run: |
-          PLIST_PC=$(pkg-config --variable=pcfiledir libplist-2.0 2>/dev/null || true)
-          if [ -n "$PLIST_PC" ] && [ ! -f "$PLIST_PC/libplist.pc" ]; then
-            ln -s "$PLIST_PC/libplist-2.0.pc" "$PLIST_PC/libplist.pc"
-          fi
-
-      - name: Generate build system
-        run: |
-          # gtk-doc is not available in MSYS2. We need three stubs:
-          # 1. gtkdocize — autoreconf invokes this when it sees GTK_DOC_CHECK
-          # 2. gtk-doc.m4 — defines GTK_DOC_CHECK so aclocal can expand it
-          # 3. gtk-doc.make — included by docs/reference/Makefile.am at automake time
-          mkdir -p /usr/local/bin
-          cat > /usr/local/bin/gtkdocize << 'SCRIPT'
-          #!/bin/sh
-          exit 0
-          SCRIPT
-          chmod +x /usr/local/bin/gtkdocize
-          cat > m4/gtk-doc.m4 << 'M4EOF'
-          dnl Stub GTK_DOC_CHECK for environments without gtk-doc
-          AC_DEFUN([GTK_DOC_CHECK], [
-            AM_CONDITIONAL([ENABLE_GTK_DOC], [false])
-            AM_CONDITIONAL([GTK_DOC_BUILD_HTML], [false])
-            AM_CONDITIONAL([GTK_DOC_BUILD_PDF], [false])
-            AM_CONDITIONAL([GTK_DOC_USE_LIBTOOL], [false])
-            AM_CONDITIONAL([GTK_DOC_USE_REBASE], [false])
-          ])
-          M4EOF
-          printf 'EXTRA_DIST =\nCLEANFILES =\n' > gtk-doc.make
-          autoreconf -fi
-
       - name: Configure
         run: |
-          ./configure \
-            --with-python \
-            --prefix=/mingw64 \
-            --disable-dependency-tracking \
-            --disable-more-warnings \
-            --disable-gtk-doc \
-            --without-hal \
-            --disable-udev \
-            --without-libimobiledevice
-          # Strip any CRLF line endings that may have leaked into generated
-          # Makefiles — MSYS2 make reports "missing separator" for \r\n lines
-          find . -name Makefile -exec sed -i 's/\r$//' {} +
-
-      - name: Fix gmodule linkage
-        run: |
-          # itdb_hashAB.c uses g_module_open/g_module_symbol from gmodule-2.0
-          # but configure.ac only links glib-2.0 + gobject-2.0. Windows does not
-          # resolve these transitively. Append gmodule-2.0 to LIBGPOD_LIBS.
-          GMODULE_LIBS="$(pkg-config --libs gmodule-2.0)"
-          sed -i "s|^LIBGPOD_LIBS = \\(.*\\)|LIBGPOD_LIBS = \\1 ${GMODULE_LIBS}|" src/Makefile
-
-      - name: Verify Python bindings will be built
-        run: |
-          # Check that configure enabled Python bindings
-          if grep -q '^#gpoddir' bindings/python/Makefile; then
-            echo "::error::Python bindings are DISABLED (HAVE_PYTHON=no)"
-            echo "Checking why..."
-            echo "Python: $(which python) ($(python --version))"
-            echo "Python prefix: $(python -c 'import sys; print(sys.prefix)')"
-            PYINC=$(python -c 'import sysconfig; print(sysconfig.get_path("include"))')
-            echo "Python includes: $PYINC"
-            ls -la "$PYINC/" 2>/dev/null || echo "Include dir not found"
-            echo "Configure log Python section:"
-            grep -A5 -i 'python' config.log | tail -30 || true
-            exit 1
-          fi
-          echo "Python bindings are enabled"
+          cmake -B build \
+            -G "MSYS Makefiles" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/mingw64
 
       - name: Build
-        run: make -j$(nproc)
+        run: cmake --build build --parallel $(nproc)
 
       - name: Install to staging directory
-        run: make install DESTDIR=$(pwd)/staging
-
-      - name: Normalize gpod module path
-        run: |
-          # Ensure gpod Python module is at the canonical path that run.py expects
-          PYVER=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-          TARGET="staging/mingw64/lib/python${PYVER}/site-packages"
-
-          # Look for a gpod directory that contains Python files (not C headers)
-          GPOD_DIR=""
-          for dir in $(find staging -type d -name gpod 2>/dev/null); do
-            if [ -f "$dir/ipod.py" ] || [ -f "$dir/__init__.py" ]; then
-              GPOD_DIR="$dir"
-              break
-            fi
-          done
-
-          if [ -z "$GPOD_DIR" ]; then
-            echo "::warning::No gpod Python package found via make install, assembling from source"
-            mkdir -p "$TARGET/gpod"
-            # Copy Python source files
-            cp bindings/python/__init__.py "$TARGET/gpod/"
-            cp bindings/python/ipod.py "$TARGET/gpod/"
-            cp bindings/python/gtkpod.py "$TARGET/gpod/"
-            # Copy SWIG-generated wrapper
-            [ -f bindings/python/gpod.py ] && cp bindings/python/gpod.py "$TARGET/gpod/"
-            # Copy compiled extension from libtool output
-            for ext in bindings/python/.libs/_gpod*; do
-              [ -f "$ext" ] && cp "$ext" "$TARGET/gpod/"
-            done
-            GPOD_DIR="$TARGET/gpod"
-          fi
-
-          echo "Found gpod at: $GPOD_DIR"
-          echo "Target: $TARGET/gpod"
-          if [ "$GPOD_DIR" != "$TARGET/gpod" ]; then
-            mkdir -p "$TARGET"
-            mv "$GPOD_DIR" "$TARGET/gpod"
-            echo "Moved gpod to canonical location"
-          else
-            echo "gpod already at canonical location"
-          fi
-
-          # Ensure __init__.py exists
-          if [ ! -f "$TARGET/gpod/__init__.py" ]; then
-            echo "::warning::__init__.py missing, copying from source"
-            cp bindings/python/__init__.py "$TARGET/gpod/__init__.py"
-          fi
-
-          ls -la "$TARGET/gpod/"
+        run: cmake --install build --prefix "$(pwd)/staging/mingw64"
 
       - name: Package artifacts
         run: |
           cp -r webpod staging/webpod
           cd staging
-          tar czf ../${{ matrix.artifact-name }}.tar.gz .
-          cd ..
+          tar czf ../libgpod-windows-x86_64-py3.14.tar.gz .
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact-name }}
-          path: ${{ matrix.artifact-name }}.tar.gz
+          name: libgpod-windows-x86_64-py3.14
+          path: libgpod-windows-x86_64-py3.14.tar.gz
 
       - name: Verify Python bindings
         run: |
@@ -494,22 +250,11 @@ jobs:
             case "$filename" in
               *windows*) platform="Windows" ;;
               *macos-arm64*) platform="macOS Apple Silicon" ;;
-              *macos-x86_64*) platform="macOS Intel" ;;
-              *linux*py3.14*) platform="Linux (Python 3.14)" ;;
-              *linux*py3.13*) platform="Linux (Python 3.13)" ;;
-              *linux*py3.12*) platform="Linux (Python 3.12)" ;;
-              *linux*py3.10*) platform="Linux (Python 3.10)" ;;
+              *linux*) platform="Linux" ;;
               *) platform="Other" ;;
             esac
             echo "- $platform: \`$filename\`" >> release_notes.md
           done
-
-          # Check for any failed builds
-          echo "" >> release_notes.md
-          if [ $(find artifacts -name '*.tar.gz' -type f | wc -l) -lt 9 ]; then
-            echo "" >> release_notes.md
-            echo "**Note:** Some builds failed and are not available in this release." >> release_notes.md
-          fi
 
           # Collect all tarballs and create release
           FILES=$(find artifacts -name '*.tar.gz' -type f)

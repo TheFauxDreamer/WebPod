@@ -283,7 +283,7 @@ PyObject* sw_get_photo(GList *list, gint index) {
 			   gpointer user_data) {
    PyDict_SetItemString((PyObject *)user_data, 
 			(char *)key,
-			PyString_FromString(value));
+			PyUnicode_FromString(value));
  }
 
  PyObject* sw_ipod_device_to_dict(Itdb_Device *device) {

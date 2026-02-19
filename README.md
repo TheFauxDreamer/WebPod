@@ -66,11 +66,9 @@ Go to [Releases](../../releases) and download the file for your system:
 
 | Your Computer | Download |
 |---------------|----------|
-| Windows | `libgpod-windows-x86_64-py3.12.tar.gz` |
-| Mac (M Series) | `libgpod-macos-arm64-py3.12.tar.gz` |
-| Mac (Intel) | `libgpod-macos-x86_64-py3.12.tar.gz` |
-| Linux (Ubuntu 24.04) | `libgpod-linux-x86_64-py3.12.tar.gz` |
-| Linux (Ubuntu 22.04) | `libgpod-linux-x86_64-py3.10.tar.gz` |
+| Windows | `libgpod-windows-x86_64-py3.14.tar.gz` |
+| Mac (M Series) | `libgpod-macos-arm64-py3.14.tar.gz` |
+| Linux | `libgpod-linux-x86_64-py3.14.tar.gz` |
 
 ### 2. Extract
 
@@ -131,16 +129,22 @@ I have applied bug fixes, and made minor modifications to the original libgpod. 
 
 ### Building from Source
 
+Requires Python 3.14+, CMake 3.20+, and SWIG.
+
 ```bash
 # Install dependencies (Ubuntu)
-sudo apt-get install libglib2.0-dev libsqlite3-dev libplist-dev \
-    libgdk-pixbuf-2.0-dev libxml2-dev swig python3-dev
+sudo apt-get install cmake pkg-config swig python3-dev \
+    libglib2.0-dev libsqlite3-dev libplist-dev zlib1g-dev \
+    libgdk-pixbuf-2.0-dev libxml2-dev
+
+# Install dependencies (macOS)
+brew install cmake pkg-config swig glib sqlite libplist \
+    gdk-pixbuf libxml2
 
 # Build
-autoreconf -fi
-./configure --with-python
-make
-make install
+cmake -B build
+cmake --build build --parallel
+cmake --install build
 ```
 
 ### Python API Example
