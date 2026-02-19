@@ -173,7 +173,12 @@ jobs:
           SITE="$(pwd)/staging/mingw64/lib/python${PYVER}/site-packages"
           # Copy libgpod DLL next to _gpod.pyd so Windows can find it
           cp staging/mingw64/bin/libgpod*.dll "$SITE/gpod/" 2>/dev/null || cp staging/mingw64/lib/libgpod*.dll "$SITE/gpod/" 2>/dev/null || true
+          echo "=== gpod package contents ==="
           ls -la "$SITE/gpod/"
+          echo "=== _gpod.pyd dependencies ==="
+          ldd "$SITE/gpod/_gpod.pyd" || true
+          echo "=== libgpod.dll dependencies ==="
+          ldd "$SITE/gpod/libgpod.dll" || true
           export PYTHONPATH="$SITE"
           python -c "import gpod; assert hasattr(gpod, 'Database'), 'Database class missing'; print('gpod module loaded successfully')"
 
