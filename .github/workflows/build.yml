@@ -173,7 +173,7 @@ jobs:
           export PATH="$(pwd)/staging/mingw64/bin:$PATH"
           PYTHONPATH="$(pwd)/staging/mingw64/lib/python${PYVER}/site-packages"
           export PYTHONPATH
-          python -c "import gpod; assert hasattr(gpod, 'Database'), 'Database class missing'; print('gpod module loaded successfully')"
+          python -c "import os; os.add_dll_directory(os.path.join(os.getcwd(), 'staging', 'mingw64', 'bin')); import gpod; assert hasattr(gpod, 'Database'), 'Database class missing'; print('gpod module loaded successfully')"
 
   release:
     needs: [build, build-windows]
