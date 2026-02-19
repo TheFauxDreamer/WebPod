@@ -5,7 +5,7 @@ classes and methods provided here.
 
 """
 
-import gpod
+from gpod import gpod
 from mutagen.mp3 import MP3
 import mutagen.id3
 from . import gtkpod
