@@ -219,6 +219,14 @@ var WebPod = {
             }
         });
 
+        // Hide the empty-state placeholder when showing a non-library view
+        var emptyState = document.getElementById('empty-state');
+        if (emptyState) {
+            if (view === 'ipod-tracks' || view === 'search') {
+                emptyState.classList.add('hidden');
+            }
+        }
+
         if (!skipLoad) {
             if (view === 'albums') {
                 Library.loadAlbums();
