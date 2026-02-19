@@ -65,6 +65,17 @@ version = '.'.join(map(str, version_info))
 #endif
 #endif
 
+/* Python 2/3 compatibility — PyInt was merged into PyLong in Python 3 */
+#if PY_MAJOR_VERSION >= 3
+#define PyInt_Check             PyLong_Check
+#define PyInt_CheckExact        PyLong_CheckExact
+#define PyInt_FromLong          PyLong_FromLong
+#define PyInt_AsLong            PyLong_AsLong
+#define PyInt_AsInt             PyLong_AsLong
+#define PyInt_AsUnsignedLongMask      PyLong_AsUnsignedLongMask
+#define PyInt_AsUnsignedLongLongMask  PyLong_AsUnsignedLongLongMask
+#endif
+
 
 /* include prototypes for all functions so builds using
  * -Wmissing-prototypes don't fail. */
