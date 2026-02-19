@@ -9,6 +9,9 @@
 #define PACKAGE_STRING "libgpod @PROJECT_VERSION@"
 #define VERSION "@PROJECT_VERSION@"
 
+/* Gettext package — required by glib's gi18n-lib.h / _() macro */
+#define GETTEXT_PACKAGE "libgpod"
+
 /* Feature flags */
 #cmakedefine HAVE_ZLIB 1
 #cmakedefine HAVE_LIBXML 1
