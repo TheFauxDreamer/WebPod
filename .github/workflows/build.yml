@@ -163,8 +163,11 @@ jobs:
           BINDIR="$(pwd)/staging/mingw64/bin"
           mkdir -p "$BINDIR"
 
+          # grep returns exit 1 on no matches, which kills the step under
+          # set -eo pipefail (GitHub Actions default).  Wrap in a subshell
+          # with || true so empty results are safe.
           collect_deps() {
-            ldd "$1" 2>/dev/null | grep '=> /mingw64/bin/' | awk '{print $3}' | sort -u
+            (ldd "$1" 2>/dev/null | grep '=> /mingw64/bin/' | awk '{print $3}' | sort -u) || true
           }
 
           # Seed with dependencies from _gpod.pyd and libgpod.dll
@@ -172,7 +175,7 @@ jobs:
           for dll_path in "$BINDIR"/libgpod*.dll; do
             [ -f "$dll_path" ] && TO_CHECK="$TO_CHECK"$'\n'"$(collect_deps "$dll_path")"
           done
-          TO_CHECK=$(echo "$TO_CHECK" | sort -u | grep -v '^$')
+          TO_CHECK=$(echo "$TO_CHECK" | sort -u | (grep -v '^$' || true))
 
           # Recursively resolve transitive dependencies
           COPIED=""
@@ -186,7 +189,7 @@ jobs:
                 NEW_DEPS="$NEW_DEPS"$'\n'"$(collect_deps "$dll")"
               fi
             done
-            TO_CHECK=$(echo "$NEW_DEPS" | sort -u | grep -v '^$')
+            TO_CHECK=$(echo "$NEW_DEPS" | sort -u | (grep -v '^$' || true))
           done
 
           echo "=== Bundled $(echo $COPIED | wc -w) MINGW64 DLLs ==="
@@ -224,7 +227,7 @@ jobs:
           ldd "$SITE/gpod/_gpod.pyd" || true
           echo "=== Checking all MINGW64 deps are bundled ==="
           MISSING=""
-          for dll in $(ldd "$SITE/gpod/_gpod.pyd" 2>/dev/null | grep '=> /mingw64/bin/' | awk '{print $1}'); do
+          for dll in $( (ldd "$SITE/gpod/_gpod.pyd" 2>/dev/null | grep '=> /mingw64/bin/' | awk '{print $1}') || true); do
             if [ ! -f "$BINDIR/$dll" ] && [ ! -f "$SITE/gpod/$dll" ]; then
               MISSING="$MISSING $dll"
             fi
