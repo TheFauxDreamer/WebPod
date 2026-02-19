@@ -147,7 +147,8 @@ jobs:
           cmake -B build \
             -G "MSYS Makefiles" \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=/mingw64
+            -DCMAKE_INSTALL_PREFIX=/mingw64 \
+            -DPython3_EXECUTABLE=$(which python)
 
       - name: Build
         run: cmake --build build --parallel $(nproc)
@@ -175,10 +176,11 @@ jobs:
           cp staging/mingw64/bin/libgpod*.dll "$SITE/gpod/" 2>/dev/null || cp staging/mingw64/lib/libgpod*.dll "$SITE/gpod/" 2>/dev/null || true
           echo "=== gpod package contents ==="
           ls -la "$SITE/gpod/"
+          echo "=== binary format ==="
+          file "$SITE/gpod/_gpod.pyd" || true
+          file "$SITE/gpod/libgpod.dll" || true
           echo "=== _gpod.pyd dependencies ==="
           ldd "$SITE/gpod/_gpod.pyd" || true
-          echo "=== libgpod.dll dependencies ==="
-          ldd "$SITE/gpod/libgpod.dll" || true
           export PYTHONPATH="$SITE"
           python -c "import gpod; assert hasattr(gpod, 'Database'), 'Database class missing'; print('gpod module loaded successfully')"
 
