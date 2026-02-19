@@ -54,6 +54,7 @@ gpod_doc.i: $(srcdir)/gpod_doc.i.in $(srcdir)/gtkdoc-to-swig.xsl
 
 gpod_wrap.c: $(SWIG_INTERFACES) $(nodist_gpod_PYTHON)
 	$(SWIG) -python $(INCLUDES) -o $@ $<
+	sed 's/^void SWIG_init/PyMODINIT_FUNC SWIG_init/' $@ > $@.tmp && mv $@.tmp $@
 
 gpod.py: $(SWIG_INTERFACES)
 	$(SWIG) -python -o $@ $<
