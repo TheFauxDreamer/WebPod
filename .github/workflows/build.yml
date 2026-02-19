@@ -305,26 +305,18 @@ jobs:
 
       - name: Configure
         run: |
-          # The depfiles bootstrapping step can fail on MSYS2 due to path format
-          # issues, but Makefiles are already generated at that point. Allow the
-          # failure and verify key Makefiles exist.
           ./configure \
             --with-python \
             --prefix=/mingw64 \
+            --disable-dependency-tracking \
             --disable-more-warnings \
             --disable-gtk-doc \
             --without-hal \
             --disable-udev \
-            --without-libimobiledevice \
-          || true
-          # Verify configure actually generated the Makefiles we need
-          for f in Makefile src/Makefile bindings/python/Makefile; do
-            if [ ! -f "$f" ]; then
-              echo "::error::Configure failed - $f not generated"
-              cat config.log | tail -50
-              exit 1
-            fi
-          done
+            --without-libimobiledevice
+          # Strip any CRLF line endings that may have leaked into generated
+          # Makefiles — MSYS2 make reports "missing separator" for \r\n lines
+          find . -name Makefile -exec sed -i 's/\r$//' {} +
 
       - name: Fix gmodule linkage
         run: |
