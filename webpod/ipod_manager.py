@@ -4,6 +4,7 @@ This module manages the iPod database connection lifecycle and provides
 thread-safe methods for all iPod operations used by the web interface.
 """
 
+import logging
 import os
 import re
 import shutil
@@ -11,6 +12,8 @@ import subprocess
 import tempfile
 import threading
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 try:
     import gpod
@@ -104,7 +107,6 @@ UNSUPPORTED_GENERATIONS = {
     'Touch', 'Touch (2nd Gen.)', 'Touch (3rd Gen.)', 'Touch (4th Gen.)',
     'iPhone', 'iPhone 3G', 'iPhone 3GS', 'iPhone 4',
     'iPad',
-    'Unknown',
 }
 
 
@@ -387,19 +389,29 @@ class IPodManager:
                         video_support = False
 
                     gen_string = gpod.itdb_info_get_ipod_generation_string(info.ipod_generation)
+                    model_string = gpod.itdb_info_get_ipod_model_name_string(info.ipod_model)
+                    supported = gen_string not in UNSUPPORTED_GENERATIONS
+                    logger.info(
+                        "Device info: model=%s (%s), generation=%s (%s), "
+                        "capacity=%sGB, video=%s, supported=%s",
+                        info.ipod_model, model_string,
+                        info.ipod_generation, gen_string,
+                        info.capacity, video_support, supported,
+                    )
                     return {
                         'model': info.ipod_model,
                         'generation': info.ipod_generation,
                         'capacity': info.capacity,
-                        'model_string': gpod.itdb_info_get_ipod_model_name_string(info.ipod_model),
+                        'model_string': model_string,
                         'generation_string': gen_string,
                         'supports_video': video_support,
-                        'supported': gen_string not in UNSUPPORTED_GENERATIONS,
+                        'supported': supported,
                         'name': ipod_name,
                     }
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Failed to read device info: %s", e)
 
+            logger.warning("Could not detect iPod model — assuming supported")
             return {
                 'model': 'unknown',
                 'generation': 'unknown',
@@ -407,7 +419,7 @@ class IPodManager:
                 'model_string': 'Unknown iPod',
                 'generation_string': 'Unknown',
                 'supports_video': False,
-                'supported': False,
+                'supported': True,
                 'name': ipod_name,
             }
 
