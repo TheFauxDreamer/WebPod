@@ -924,6 +924,68 @@ var WebPod = {
                     panel.classList.add('hidden');
                 }
             });
+
+            // Load iPod info when that category is selected
+            if (categoryName === 'ipod-info') {
+                loadIpodInfo();
+            }
+        }
+
+        function loadIpodInfo() {
+            var container = document.getElementById('ipod-info-content');
+            container.innerHTML = '<p class="ipod-info-loading">Loading...</p>';
+
+            WebPod.api('/api/ipod/device-info').then(function(info) {
+                if (info.error) {
+                    container.innerHTML = '<p class="ipod-info-empty">No iPod connected.</p>';
+                    return;
+                }
+
+                var rows = [
+                    { label: 'Name', value: info.name || 'Unknown' },
+                    { label: 'Model', value: info.model_string || 'Unknown' },
+                    { label: 'Generation', value: info.generation_string || 'Unknown' },
+                    { label: 'Capacity', value: info.capacity ? info.capacity + ' GB' : 'Unknown' },
+                    { label: 'Model Number', value: info.model_number || '' },
+                    { label: 'Serial Number', value: info.serial_number || '' },
+                    { label: 'Firmware', value: info.firmware_version || '' },
+                    { label: 'FireWire GUID', value: info.fireware_guid || '' },
+                    { label: 'Mount Point', value: info.mountpoint || '' },
+                    { label: 'Video Support', value: info.supports_video ? 'Yes' : 'No' },
+                    { label: 'Supported', value: info.supported ? 'Yes' : 'Limited' },
+                ];
+
+                var html = '<table class="device-info-table">';
+                rows.forEach(function(row) {
+                    if (row.value) {
+                        html += '<tr><th>' + row.label + '</th><td>' + row.value + '</td></tr>';
+                    }
+                });
+                html += '</table>';
+
+                // Fetch storage info too
+                WebPod.api('/api/ipod/storage').then(function(storage) {
+                    if (storage && storage.total_bytes) {
+                        var usedGB = (storage.used_bytes / (1024 * 1024 * 1024)).toFixed(1);
+                        var totalGB = (storage.total_bytes / (1024 * 1024 * 1024)).toFixed(1);
+                        var freeGB = (storage.free_bytes / (1024 * 1024 * 1024)).toFixed(1);
+                        var pct = Math.round((storage.used_bytes / storage.total_bytes) * 100);
+
+                        html += '<div class="device-info-storage">';
+                        html += '<label>Storage</label>';
+                        html += '<div class="device-info-storage-bar-bg">';
+                        html += '<div class="device-info-storage-bar-fill" style="width:' + pct + '%"></div>';
+                        html += '</div>';
+                        html += '<small>' + usedGB + ' GB used of ' + totalGB + ' GB (' + freeGB + ' GB free)</small>';
+                        html += '</div>';
+                    }
+                    container.innerHTML = html;
+                }).catch(function() {
+                    container.innerHTML = html;
+                });
+            }).catch(function() {
+                container.innerHTML = '<p class="ipod-info-empty">No iPod connected.</p>';
+            });
         }
 
         // Setup nav click handlers

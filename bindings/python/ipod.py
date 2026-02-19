@@ -554,9 +554,10 @@ class _Playlists:
         return "<Playlists from %s>" % self._db
 
     def __call__(self, id=None, number=None, name=None):
-        if ((id and (number or name)) or (number and name)):
+        if ((id is not None and (number is not None or name is not None)) or
+                (number is not None and name is not None)):
             raise ValueError("Only specify id, number OR name")
-        if id:
+        if id is not None:
             if type(id) in (tuple, list):
                 return [self.__call__(id=i) for i in id]
             else:

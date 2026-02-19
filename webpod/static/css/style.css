@@ -1136,6 +1136,69 @@ select + small.settings-description {
     z-index: 1;
 }
 
+/* iPod Info */
+.device-info-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.device-info-table th,
+.device-info-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.device-info-table th {
+    color: var(--text-secondary);
+    font-weight: 500;
+    width: 140px;
+    white-space: nowrap;
+}
+
+.device-info-table td {
+    color: var(--text-bright);
+    word-break: break-all;
+}
+
+.device-info-storage {
+    margin-top: 20px;
+}
+
+.device-info-storage label {
+    display: block;
+    color: var(--text-bright);
+    margin-bottom: 6px;
+}
+
+.device-info-storage small {
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 4px;
+}
+
+.device-info-storage-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-primary);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.device-info-storage-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.ipod-info-empty,
+.ipod-info-loading {
+    color: var(--text-secondary);
+    padding: 20px 0;
+}
+
 /* Progress area styling */
 #scan-progress-area {
     margin-top: 16px;

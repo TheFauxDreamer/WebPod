@@ -473,6 +473,17 @@
                             </span>
                             <span class="nav-label">Sync</span>
                         </li>
+                        <li data-category="ipod-info">
+                            <span class="nav-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="5" y="1" width="14" height="22" rx="3"/>
+                                    <circle cx="12" cy="15" r="4"/>
+                                    <circle cx="12" cy="15" r="1.5"/>
+                                    <rect x="8" y="4" width="8" height="5" rx="1"/>
+                                </svg>
+                            </span>
+                            <span class="nav-label">iPod Info</span>
+                        </li>
                     </ul>
                 </nav>
 
@@ -703,6 +714,17 @@
                         <!-- Sync Actions -->
                         <div class="settings-actions">
                             <button id="sync-save" class="btn btn-primary">Save</button>
+                            <button class="settings-close-btn btn">Close</button>
+                        </div>
+                    </div>
+
+                    <!-- iPod Info Category -->
+                    <div class="settings-category hidden" data-category="ipod-info">
+                        <h2>iPod Info</h2>
+                        <div id="ipod-info-content">
+                            <p class="ipod-info-empty">No iPod connected.</p>
+                        </div>
+                        <div class="settings-actions">
                             <button class="settings-close-btn btn">Close</button>
                         </div>
                     </div>

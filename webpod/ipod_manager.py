@@ -210,9 +210,13 @@ class IPodManager:
         with self._lock:
             self._require_connected()
             pl = self._find_playlist(playlist_id)
+            print(f"[iPod] Loading playlist {playlist_id}: '{pl.name}', {len(pl)} tracks")
             tracks = []
             for i in range(len(pl)):
-                tracks.append(self._track_to_dict(pl[i]))
+                try:
+                    tracks.append(self._track_to_dict(pl[i]))
+                except Exception as e:
+                    print(f"[iPod] Error serializing track {i}: {type(e).__name__}: {e}")
             return tracks
 
     def get_albums(self):
@@ -374,6 +378,15 @@ class IPodManager:
             except Exception:
                 ipod_name = 'iPod'
 
+            # Read SysInfo key/value pairs from the iPod
+            sysinfo = {}
+            try:
+                dev_dict = self._db.get_device()
+                if dev_dict and 'sysinfo' in dev_dict:
+                    sysinfo = dev_dict['sysinfo'] or {}
+            except Exception:
+                pass
+
             try:
                 device = self._db._itdb.device
                 info = gpod.itdb_device_get_ipod_info(device)
@@ -400,6 +413,11 @@ class IPodManager:
                         'supports_video': video_support,
                         'supported': supported,
                         'name': ipod_name,
+                        'mountpoint': self._mountpoint,
+                        'serial_number': sysinfo.get('SerialNumber', ''),
+                        'firmware_version': sysinfo.get('VisibleBuildID', sysinfo.get('BuildID', '')),
+                        'model_number': sysinfo.get('ModelNumStr', ''),
+                        'fireware_guid': sysinfo.get('FirewireGuid', ''),
                     }
             except Exception as e:
                 print(f"[iPod] Failed to read device info: {e}")
@@ -414,6 +432,11 @@ class IPodManager:
                 'supports_video': False,
                 'supported': True,
                 'name': ipod_name,
+                'mountpoint': self._mountpoint,
+                'serial_number': sysinfo.get('SerialNumber', ''),
+                'firmware_version': sysinfo.get('VisibleBuildID', sysinfo.get('BuildID', '')),
+                'model_number': sysinfo.get('ModelNumStr', ''),
+                'fireware_guid': sysinfo.get('FirewireGuid', ''),
             }
 
     def supports_video(self):
@@ -819,8 +842,11 @@ class IPodManager:
         """Find a playlist by ID. Raises IPodError if not found."""
         try:
             pl = self._db.Playlists(id=playlist_id)
+            if pl is None:
+                raise KeyError(f"Playlists(id={playlist_id}) returned None")
             return pl
-        except KeyError:
+        except (KeyError, Exception) as e:
+            print(f"[iPod] _find_playlist({playlist_id}) failed: {type(e).__name__}: {e}")
             raise IPodError(f"Playlist with id {playlist_id} not found")
 
     def _track_to_dict(self, track):

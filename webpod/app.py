@@ -749,6 +749,9 @@ def ipod_playlist_tracks(playlist_id):
         return jsonify({"tracks": tracks})
     except IPodError as e:
         return jsonify({"error": str(e)}), 503
+    except Exception as e:
+        print(f"[iPod] Error loading playlist {playlist_id} tracks: {type(e).__name__}: {e}")
+        return jsonify({"error": f"Failed to load playlist tracks: {e}"}), 500
 
 
 @app.route('/api/ipod/playlists', methods=['POST'])
