@@ -742,10 +742,10 @@ def ipod_playlists_list():
         return jsonify({"error": str(e)}), 503
 
 
-@app.route('/api/ipod/playlists/<int:playlist_id>/tracks', methods=['GET'])
+@app.route('/api/ipod/playlists/<playlist_id>/tracks', methods=['GET'])
 def ipod_playlist_tracks(playlist_id):
     try:
-        tracks = ipod.get_playlist_tracks(playlist_id)
+        tracks = ipod.get_playlist_tracks(int(playlist_id))
         return jsonify({"tracks": tracks})
     except IPodError as e:
         return jsonify({"error": str(e)}), 503
@@ -767,23 +767,23 @@ def ipod_create_playlist():
         return jsonify({"error": str(e)}), 503
 
 
-@app.route('/api/ipod/playlists/<int:playlist_id>', methods=['PUT'])
+@app.route('/api/ipod/playlists/<playlist_id>', methods=['PUT'])
 def ipod_rename_playlist(playlist_id):
     data = request.get_json()
     name = data.get('name', '').strip()
     if not name:
         return jsonify({"error": "Playlist name required"}), 400
     try:
-        result = ipod.rename_playlist(playlist_id, name)
+        result = ipod.rename_playlist(int(playlist_id), name)
         return jsonify(result)
     except IPodError as e:
         return jsonify({"error": str(e)}), 503
 
 
-@app.route('/api/ipod/playlists/<int:playlist_id>', methods=['DELETE'])
+@app.route('/api/ipod/playlists/<playlist_id>', methods=['DELETE'])
 def ipod_delete_playlist(playlist_id):
     try:
-        ipod.delete_playlist(playlist_id)
+        ipod.delete_playlist(int(playlist_id))
         return jsonify({"deleted": True})
     except IPodError as e:
         return jsonify({"error": str(e)}), 503
@@ -796,6 +796,8 @@ def ipod_add_tracks():
     data = request.get_json()
     track_ids = data.get('track_ids', [])
     playlist_id = data.get('playlist_id', None)
+    if playlist_id is not None:
+        playlist_id = int(playlist_id)
 
     if not track_ids:
         return jsonify({"error": "No tracks specified"}), 400
@@ -819,7 +821,7 @@ def ipod_remove_tracks():
     if not track_ids:
         return jsonify({"error": "No tracks specified"}), 400
     try:
-        removed = ipod.remove_tracks(set(track_ids))
+        removed = ipod.remove_tracks(set(int(tid) for tid in track_ids))
         return jsonify({"removed": removed})
     except IPodError as e:
         return jsonify({"error": str(e)}), 503
@@ -855,8 +857,9 @@ def ipod_sync_preview():
         return jsonify({"error": str(e)}), 503
 
 
-@app.route('/api/ipod/tracks/<int:track_id>/rating', methods=['PUT'])
+@app.route('/api/ipod/tracks/<track_id>/rating', methods=['PUT'])
 def ipod_set_track_rating(track_id):
+    track_id = int(track_id)
     """Set the rating for a track on the iPod."""
     data = request.get_json()
     if not data or 'rating' not in data:

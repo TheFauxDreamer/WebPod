@@ -196,7 +196,7 @@ class IPodManager:
             for i in range(len(self._db.Playlists)):
                 pl = self._db.Playlists[i]
                 playlists.append({
-                    "id": pl.id,
+                    "id": str(pl.id),
                     "name": pl.name,
                     "smart": pl.smart,
                     "master": pl.master,
@@ -460,7 +460,7 @@ class IPodManager:
             self._require_connected()
             pl = self._db.new_Playlist(title=name)
             return {
-                "id": pl.id,
+                "id": str(pl.id),
                 "name": pl.name,
                 "smart": pl.smart,
                 "master": pl.master,
@@ -476,7 +476,7 @@ class IPodManager:
             if pl.master:
                 raise IPodError("Cannot rename the master playlist")
             pl.name = new_name
-            return {"id": pl.id, "name": pl.name}
+            return {"id": str(pl.id), "name": pl.name}
 
     def delete_playlist(self, playlist_id):
         """Delete a playlist (does not remove its tracks from iPod)."""
@@ -852,7 +852,7 @@ class IPodManager:
     def _track_to_dict(self, track):
         """Serialize a gpod Track to a plain dict."""
         return {
-            'id': track['id'],
+            'id': str(track['id']),
             'title': track['title'],
             'artist': track['artist'],
             'album': track['album'],
