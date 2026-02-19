@@ -54,6 +54,11 @@ target_compile_definitions(_gpod PRIVATE HAVE_CONFIG_H)
 # On macOS, Python extensions should not link libpython
 if(APPLE)
     set_target_properties(_gpod PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+elseif(NATIVE_PYTHON_LIBRARY)
+    # Cross-build: MSYS2 MINGW64 toolchain compiles using MSYS2 Python headers,
+    # but we link against native CPython's python3XX.dll so the .pyd works with
+    # the standard Windows Python installation (not MSYS2's libpython).
+    target_link_libraries(_gpod PRIVATE ${NATIVE_PYTHON_LIBRARY})
 else()
     target_link_libraries(_gpod PRIVATE ${Python3_LIBRARIES})
 endif()

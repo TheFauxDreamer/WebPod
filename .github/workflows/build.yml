@@ -119,6 +119,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Install native CPython BEFORE MSYS2 so we can capture its path.
+      # The .pyd will be linked against this Python's DLL (python3XX.dll)
+      # rather than MSYS2's libpython, so it works on end-user machines.
+      - name: Set up native Python
+        uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: '3.14'
+
+      - name: Save native Python paths
+        shell: pwsh
+        run: |
+          $pythonDir = Split-Path "${{ steps.setup-python.outputs.python-path }}"
+          echo "NATIVE_PYTHON_DIR=$pythonDir" >> $env:GITHUB_ENV
+
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -137,10 +152,23 @@ jobs:
             mingw-w64-x86_64-python
             mingw-w64-x86_64-python-mutagen
             mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-tools
             make
 
-      - name: Show MSYS2 Python version
-        run: python --version
+      - name: Show Python versions
+        run: |
+          echo "MSYS2 Python: $(python --version)"
+          NATIVE_DIR=$(cygpath "$NATIVE_PYTHON_DIR")
+          echo "Native Python: $("$NATIVE_DIR/python.exe" --version)"
+
+      - name: Create native Python import library for MinGW
+        run: |
+          NATIVE_DIR=$(cygpath "$NATIVE_PYTHON_DIR")
+          PYVER=$("$NATIVE_DIR/python.exe" -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
+          echo "Creating import library for python${PYVER}.dll"
+          gendef "$NATIVE_DIR/python${PYVER}.dll"
+          dlltool -D "python${PYVER}.dll" -d "python${PYVER}.def" -l libpython-native.a
+          echo "NATIVE_PYTHON_IMPORTLIB=$(pwd)/libpython-native.a" >> "$GITHUB_ENV"
 
       - name: Configure
         run: |
@@ -148,7 +176,8 @@ jobs:
             -G "MSYS Makefiles" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=/mingw64 \
-            -DPython3_EXECUTABLE=$(which python)
+            -DPython3_EXECUTABLE=$(which python) \
+            -DNATIVE_PYTHON_LIBRARY="$NATIVE_PYTHON_IMPORTLIB"
 
       - name: Build
         run: cmake --build build --parallel $(nproc)
@@ -166,8 +195,10 @@ jobs:
           # grep returns exit 1 on no matches, which kills the step under
           # set -eo pipefail (GitHub Actions default).  Wrap in a subshell
           # with || true so empty results are safe.
+          # Exclude libpython — the .pyd is linked against native CPython's
+          # python3XX.dll which is already loaded in the user's process.
           collect_deps() {
-            (ldd "$1" 2>/dev/null | grep '=> /mingw64/bin/' | awk '{print $3}' | sort -u) || true
+            (ldd "$1" 2>/dev/null | grep '=> /mingw64/bin/' | grep -v 'libpython' | awk '{print $3}' | sort -u) || true
           }
 
           # Seed with dependencies from _gpod.pyd and libgpod.dll
