@@ -1034,7 +1034,7 @@ var IPodMode = {
                 star.addEventListener('click', function(e) {
                     e.stopPropagation();
                     var val = parseInt(this.dataset.value);
-                    var tid = parseInt(this.dataset.trackId);
+                    var tid = this.dataset.trackId;
                     IPodMode.setRating(tid, val, this.parentElement);
                 });
                 tdRating.appendChild(star);
@@ -1291,7 +1291,7 @@ var IPodMode = {
             var items = document.querySelectorAll('#ipod-mode-playlists-list li');
             items.forEach(function(item) {
                 item.classList.toggle('selected',
-                    parseInt(item.dataset.playlistId) === playlistId);
+                    item.dataset.playlistId === String(playlistId));
             });
 
             // Clear browse navigation selection
@@ -1359,7 +1359,7 @@ var IPodMode = {
     updateSelectionUI: function() {
         var rows = document.querySelectorAll('#ipod-all-songs-tbody tr');
         rows.forEach(function(row) {
-            var id = parseInt(row.dataset.trackId);
+            var id = row.dataset.trackId;
             var selected = IPodMode.selectedTrackIds.indexOf(id) >= 0;
             row.classList.toggle('selected', selected);
             var checkbox = row.querySelector('input[type="checkbox"]');

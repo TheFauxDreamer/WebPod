@@ -32,7 +32,7 @@ var DragDrop = {
             var li = DragDrop.findPlaylistItem(e.target);
             if (li) {
                 li.classList.remove('drop-target');
-                var playlistId = parseInt(li.dataset.playlistId, 10);
+                var playlistId = li.dataset.playlistId;
                 DragDrop.handleDrop(e, playlistId);
             }
         });

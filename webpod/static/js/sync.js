@@ -232,8 +232,10 @@ var Sync = {
 
                 // Re-enable scan button
                 var scanBtn = document.getElementById('scan-btn');
-                scanBtn.disabled = false;
-                scanBtn.textContent = 'Scan Library';
+                if (scanBtn) {
+                    scanBtn.disabled = false;
+                    scanBtn.textContent = 'Scan Library';
+                }
 
                 // Refresh the current library view
                 if (WebPod.currentView === 'albums') {
