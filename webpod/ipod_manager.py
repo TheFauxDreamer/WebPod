@@ -384,12 +384,43 @@ class IPodManager:
                 dev_dict = self._db.get_device()
                 if dev_dict and 'sysinfo' in dev_dict:
                     sysinfo = dev_dict['sysinfo'] or {}
-            except Exception:
-                pass
+                print(f"[iPod] Device dict: mountpoint={dev_dict.get('mountpoint')}, "
+                      f"musicdirs={dev_dict.get('musicdirs')}, byte_order={dev_dict.get('byte_order')}")
+                print(f"[iPod] SysInfo keys: {list(sysinfo.keys()) if sysinfo else '(empty)'}")
+                if sysinfo:
+                    for k, v in sysinfo.items():
+                        print(f"[iPod]   SysInfo[{k}] = {v}")
+            except Exception as e:
+                print(f"[iPod] Failed to read device dict: {e}")
+
+            # Check SysInfo files on disk
+            for ctrl_dir in ['iPod_Control', 'iTunes_Control']:
+                dev_dir = os.path.join(self._mountpoint, ctrl_dir, 'Device')
+                if os.path.isdir(dev_dir):
+                    print(f"[iPod] Device dir exists: {dev_dir}")
+                    print(f"[iPod]   Contents: {os.listdir(dev_dir)}")
+                    sysinfo_path = os.path.join(dev_dir, 'SysInfo')
+                    if os.path.exists(sysinfo_path):
+                        size = os.path.getsize(sysinfo_path)
+                        print(f"[iPod] SysInfo file: {sysinfo_path} ({size} bytes)")
+                        if size > 0:
+                            with open(sysinfo_path, 'r', errors='replace') as f:
+                                print(f"[iPod]   Contents: {f.read().strip()[:500]}")
+                        else:
+                            print(f"[iPod]   File is EMPTY — this is why model detection fails")
+                    else:
+                        print(f"[iPod] SysInfo file NOT found in {dev_dir}")
+                    sysinfo_ex = os.path.join(dev_dir, 'SysInfoExtended')
+                    if os.path.exists(sysinfo_ex):
+                        print(f"[iPod] SysInfoExtended: {sysinfo_ex} ({os.path.getsize(sysinfo_ex)} bytes)")
+                    else:
+                        print(f"[iPod] SysInfoExtended NOT found in {dev_dir}")
 
             try:
                 device = self._db._itdb.device
                 info = gpod.itdb_device_get_ipod_info(device)
+                print(f"[iPod] itdb_device_get_ipod_info: device={'OK' if device else 'None'}, "
+                      f"info={'OK' if info else 'None'}")
 
                 if info:
                     # Check video support
